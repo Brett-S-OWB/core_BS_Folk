@@ -567,6 +567,7 @@ class SetData:
                     self._validate_value(msg, str)
                 elif ("/control_parameter/imported_instant_charging" in msg.topic or
                         "/control_parameter/imported_at_plan_start" in msg.topic or
+                        "/control_parameter/min_current" in msg.topic or
                         "/control_parameter/timestamp_switch_on_off" in msg.topic or
                         "/control_parameter/timestamp_auto_phase_switch" in msg.topic or
                         "/control_parameter/timestamp_perform_phase_switch" in msg.topic):

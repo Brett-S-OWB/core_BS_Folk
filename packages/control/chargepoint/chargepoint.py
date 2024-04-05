@@ -276,6 +276,10 @@ class Chargepoint(ChargepointRfidMixin):
                     self.data.set.charging_ev_data.charge_template.data.chargemode.selected)
             self.data.control_parameter.prio = self.data.set.charging_ev_data.charge_template.data.prio
             self.data.control_parameter.required_current = required_current
+            if self.template.data.charging_type == ChargingType.AC.value:
+                self.data.control_parameter.min_current = self.data.set.charging_ev_data.ev_template.data.min_current
+            else:
+                self.data.control_parameter.min_current = self.data.set.charging_ev_data.ev_template.data.dc_min_current
         except Exception:
             log.exception("Fehler im LP-Modul "+str(self.num))
 

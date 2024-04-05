@@ -256,10 +256,6 @@ class Ev:
         message = None
         state = True
         try:
-            if charging_type == ChargingType.AC.value:
-                ev_min_current = self.ev_template.data.min_current
-            else:
-                ev_min_current = self.ev_template.data.dc_min_current
             if self.charge_template.data.chargemode.selected == "scheduled_charging":
                 if control_parameter.imported_at_plan_start is None:
                     control_parameter.imported_at_plan_start = imported
@@ -294,7 +290,7 @@ class Ev:
                     self.data.get.soc,
                     used_amount,
                     control_parameter.phases,
-                    ev_min_current,
+                    control_parameter.min_current,
                     soc_request_intervall_offset)
 
             # Wenn Zielladen auf Überschuss wartet, prüfen, ob Zeitladen aktiv ist.
@@ -330,7 +326,7 @@ class Ev:
                         charging_type)
                 elif self.charge_template.data.chargemode.selected == "pv_charging":
                     required_current, submode, message = self.charge_template.pv_charging(
-                        self.data.get.soc, ev_min_current, charging_type)
+                        self.data.get.soc, control_parameter.min_current, charging_type)
                 elif self.charge_template.data.chargemode.selected == "standby":
                     # Text von Zeit-und Zielladen nicht überschreiben.
                     if message is None:
@@ -410,7 +406,7 @@ class Ev:
                                        max_current_cp: int,
                                        limit: LimitingValue) -> Tuple[bool, Optional[str]]:
         # Manche EV laden mit 6.1A bei 6A Sollstrom
-        min_current = self.ev_template.data.min_current + self.ev_template.data.nominal_difference
+        min_current = control_parameter.min_current + self.ev_template.data.nominal_difference
         max_current = (min(self.ev_template.data.max_current_single_phase, max_current_cp)
                        - self.ev_template.data.nominal_difference)
         phases_in_use = control_parameter.phases
@@ -425,7 +421,7 @@ class Ev:
         all_surplus = (-evu_counter.calc_surplus() - evu_counter.data.set.released_surplus +
                        evu_counter.data.set.reserved_surplus - feed_in_yield)
         condition_1_to_3 = (((max(get_currents) > max_current and
-                            all_surplus > self.ev_template.data.min_current * max_phases_ev * 230
+                            all_surplus > control_parameter.min_current * max_phases_ev * 230
                             - get_power) or limit == LimitingValue.UNBALANCED_LOAD.value) and
                             phases_in_use == 1)
         condition_3_to_1 = max(get_currents) < min_current and all_surplus <= 0 and phases_in_use > 1
@@ -466,11 +462,11 @@ class Ev:
         if phases_in_use == 1:
             direction_str = f"Umschaltverzögerung von 1 auf {max_phases}"
             delay = pv_config.phase_switch_delay * 60
-            required_reserved_power = (self.ev_template.data.min_current * max_phases * 230 -
+            required_reserved_power = (control_parameter.min_current * max_phases * 230 -
                                        self.ev_template.data.max_current_single_phase * 230)
 
             new_phase = max_phases
-            new_current = self.ev_template.data.min_current
+            new_current = control_parameter.min_current
         else:
             direction_str = f"Umschaltverzögerung von {max_phases} auf 1"
             delay = (16 - pv_config.phase_switch_delay) * 60
@@ -683,22 +679,22 @@ class ChargeTemplate:
                         else:
                             current = pv_charging.dc_min_soc_current
                         return current, "instant_charging", message
-                if pv_charging.min_current == 0:
+                if charging_type == ChargingType.AC.value:
+                    pv_min_current = pv_charging.min_current
+                else:
+                    pv_min_current = pv_charging.dc_min_current
+                if pv_min_current == 0:
                     # nur PV; Ampere darf nicht 0 sein, wenn geladen werden soll
                     return min_current, "pv_charging", message
                 else:
                     # Min PV
-                    if charging_type == ChargingType.AC.value:
-                        current = pv_charging.min_current
-                    else:
-                        current = pv_charging.dc_min_current
                     if data.data.bat_all_data.data.config.configured is True:
                         if data.data.bat_all_data.data.set.switch_on_soc_state == SwitchOnBatState.CHARGE_FROM_BAT:
-                            return current, "instant_charging", message
+                            return pv_min_current, "instant_charging", message
                         else:
                             return 0, "stop", data.data.bat_all_data.data.set.switch_on_soc_state.value
                     else:
-                        return current, "instant_charging", message
+                        return pv_min_current, "instant_charging", message
             else:
                 return 0, "stop", self.PV_CHARGING_SOC_REACHED
         except Exception:

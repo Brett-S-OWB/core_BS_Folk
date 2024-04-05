@@ -409,7 +409,7 @@ class Counter:
                 control_parameter.state = ChargepointState.CHARGING_ALLOWED
         else:
             # Wurde die Abschaltschwelle ggf. durch die Verzögerung anderer LP erreicht?
-            min_current = (charging_ev_data.ev_template.data.min_current
+            min_current = (chargepoint.data.control_parameter.min_current
                            + charging_ev_data.ev_template.data.nominal_difference)
             if power_in_use > threshold and max(chargepoint.data.get.currents) <= min_current:
                 if not charging_ev_data.ev_template.data.prevent_charge_stop:
