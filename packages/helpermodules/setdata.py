@@ -10,7 +10,7 @@ import re
 import paho.mqtt.client as mqtt
 
 import logging
-from helpermodules import subdata
+from helpermodules import hardware_configuration, subdata
 from helpermodules.broker import InternalBrokerClient
 from helpermodules.pub import Pub, pub_single
 from helpermodules.utils.topic_parser import (decode_payload, get_index, get_index_position, get_second_index,
@@ -520,7 +520,10 @@ class SetData:
                         "/set/charging_ev_prev" in msg.topic):
                     self._validate_value(msg, int, [(-1, float("inf"))])
                 elif "/set/current" in msg.topic:
-                    self._validate_value(msg, float, [(6, 32), (0, 0)])
+                    if hardware_configuration.get_hardware_configuration_setting("dc_charging"):
+                        self._validate_value(msg, float, [(0, 0), (6, 32), (0, 450)])
+                    else:
+                        self._validate_value(msg, float, [(6, 32), (0, 0)])
                 elif ("/set/energy_to_charge" in msg.topic or
                         "/set/required_power" in msg.topic):
                     self._validate_value(msg, float, [(0, float("inf"))])
@@ -546,7 +549,10 @@ class SetData:
                 elif "get" in msg.topic:
                     self.process_chargepoint_get_topics(msg)
                 elif "/control_parameter/required_current" in msg.topic:
-                    self._validate_value(msg, float, [(6, 32), (0, 0)])
+                    if hardware_configuration.get_hardware_configuration_setting("dc_charging"):
+                        self._validate_value(msg, float, [(0, 0), (6, 32), (0, 450)])
+                    else:
+                        self._validate_value(msg, float, [(6, 32), (0, 0)])
                 elif "/control_parameter/phases" in msg.topic:
                     self._validate_value(msg, int, [(0, 3)])
                 elif "/control_parameter/failed_phase_switches" in msg.topic:

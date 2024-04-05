@@ -628,7 +628,8 @@ class Chargepoint(ChargepointRfidMixin):
                         self.data.control_parameter,
                         self.data.get.imported,
                         max_phase_hw,
-                        self.cp_ev_support_phase_switch())
+                        self.cp_ev_support_phase_switch(),
+                        self.template.data.charging_type)
                     phases = self.set_phases(phases)
                     self._pub_connected_vehicle(charging_ev)
                     required_current = self.chargepoint_module.add_conversion_loss_to_current(required_current)
