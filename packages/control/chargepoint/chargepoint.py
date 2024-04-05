@@ -27,6 +27,7 @@ from control import data
 from control.chargemode import Chargemode
 from control.chargepoint.chargepoint_data import ChargepointData, ConnectedConfig, ConnectedInfo, ConnectedSoc, Get, Log
 from control.chargepoint.chargepoint_template import CpTemplate
+from control.chargepoint.charging_type import ChargingType
 from control.chargepoint.control_parameter import ControlParameter
 from control.chargepoint.rfid import ChargepointRfidMixin
 from control.ev import Ev
@@ -567,14 +568,19 @@ class Chargepoint(ChargepointRfidMixin):
 
     def check_min_max_current(self, required_current: float, phases: int, pv: bool = False) -> float:
         required_current_prev = required_current
-        required_current, msg = self.data.set.charging_ev_data.check_min_max_current(self.data.control_parameter,
-                                                                                     required_current,
-                                                                                     phases,
-                                                                                     pv)
-        if phases == 1:
-            required_current = min(required_current, self.template.data.max_current_single_phase)
+        required_current, msg = self.data.set.charging_ev_data.check_min_max_current(
+            self.data.control_parameter,
+            required_current,
+            phases,
+            self.template.data.charging_type,
+            pv)
+        if self.template.data.charging_type == ChargingType.AC.value:
+            if phases == 1:
+                required_current = min(required_current, self.template.data.max_current_single_phase)
+            else:
+                required_current = min(required_current, self.template.data.max_current_multi_phases)
         else:
-            required_current = min(required_current, self.template.data.max_current_multi_phases)
+            required_current = min(required_current, self.template.data.dc_max_current)
         if required_current != required_current_prev and msg is None:
             msg = ("Die Einstellungen in dem Ladepunkt-Profil beschränken den Strom auf "
                    f"maximal {required_current} A.")

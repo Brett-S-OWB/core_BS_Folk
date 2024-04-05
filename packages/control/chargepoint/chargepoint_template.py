@@ -42,6 +42,7 @@ class CpTemplateData:
     id: int = 0
     max_current_multi_phases: int = 32
     max_current_single_phase: int = 32
+    dc_max_current: float = 435
     name: str = "Standard Ladepunkt-Profil"
     rfid_enabling: bool = False
     valid_tags: List = field(default_factory=empty_list_factory)

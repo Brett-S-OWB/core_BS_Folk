@@ -6,6 +6,7 @@ import pytest
 from control import data
 from control import optional
 from control.bat_all import SwitchOnBatState
+from control.chargepoint.charging_type import ChargingType
 from control.ev import ChargeTemplate, EvTemplate, EvTemplateData, SelectedPlan
 from control.general import General
 from helpermodules import timecheck
@@ -61,7 +62,7 @@ def test_time_charging(plans: Dict[int, TimeChargingPlan], soc: float, used_amou
     monkeypatch.setattr(timecheck, "check_plans_timeframe", check_plans_timeframe_mock)
 
     # execution
-    ret = ct.time_charging(soc, used_amount_time_charging)
+    ret = ct.time_charging(soc, used_amount_time_charging, ChargingType.AC.value)
 
     # evaluation
     assert ret == expected
@@ -87,7 +88,7 @@ def test_instant_charging(selected: str, current_soc: float, used_amount: float,
     ct.data.chargemode.instant_charging.limit.selected = selected
 
     # execution
-    ret = ct.instant_charging(current_soc, used_amount)
+    ret = ct.instant_charging(current_soc, used_amount, ChargingType.AC.value)
 
     # evaluation
     assert ret == expected
@@ -117,7 +118,7 @@ def test_pv_charging(min_soc: int, min_current: int, current_soc: float, switch_
     data.data.bat_all_data.data.config.configured = True
 
     # execution
-    ret = ct.pv_charging(current_soc, 6)
+    ret = ct.pv_charging(current_soc, 6, ChargingType.AC.value)
 
     # evaluation
     assert ret == expected
@@ -158,7 +159,8 @@ def test_scheduled_charging_recent_plan(params: Params, monkeypatch):
     evt = Mock(spec=EvTemplate, data=evt_data)
 
     # execution
-    ct.scheduled_charging_recent_plan(50, evt, params.phases, 5, params.max_phases, params.phase_switch_supported)
+    ct.scheduled_charging_recent_plan(50, evt, params.phases, 5, params.max_phases,
+                                      params.phase_switch_supported, ChargingType.AC.value)
 
     # evaluation
     assert search_plan_mock.call_args.args[0] == params.expected_max_current
@@ -177,7 +179,7 @@ def test_calculate_duration(selected: str, phases: int, expected_duration: float
     plan = ScheduledChargingPlan()
     plan.limit.selected = selected
     # execution
-    duration, missing_amount = ct.calculate_duration(plan, 60, 45000, 200, phases)
+    duration, missing_amount = ct.calculate_duration(plan, 60, 45000, 200, phases, ChargingType.AC.value)
 
     # evaluation
     assert duration == expected_duration
@@ -206,7 +208,7 @@ def test_search_plan(check_duration_return1: Tuple[Optional[float], bool],
     plan_mock = Mock(spec=ScheduledChargingPlan, active=True, current=14)
     ct.data.chargemode.scheduled_charging.plans = {0: plan_mock, 1: plan_mock}
     # execution
-    plan_data = ct.search_plan(14, 60, EvTemplate(), 3, 200)
+    plan_data = ct.search_plan(14, 60, EvTemplate(), 3, 200, ChargingType.AC.value)
 
     # evaluation
     assert plan_data is not None
