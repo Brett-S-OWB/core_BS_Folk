@@ -453,6 +453,8 @@ class SetData:
                     self._validate_value(msg, str, pub_json=True)
                 elif "/chargemode/instant_charging/current" in msg.topic:
                     self._validate_value(msg, int, [(6, 32)], pub_json=True)
+                elif "/chargemode/instant_charging/dc_current" in msg.topic:
+                    self._validate_value(msg, float, [(4, 300)], pub_json=True)
                 elif "/chargemode/instant_charging/limit/selected" in msg.topic:
                     self._validate_value(msg, str, pub_json=True)
                 elif "/chargemode/instant_charging/limit/soc" in msg.topic:
@@ -464,10 +466,14 @@ class SetData:
                 elif "/chargemode/pv_charging/min_current" in msg.topic:
                     self._validate_value(
                         msg, int, [(0, 0), (6, 16)], pub_json=True)
+                elif "/chargemode/pv_charging/dc_min_current" in msg.topic:
+                    self._validate_value(msg, float, [(0, 300)], pub_json=True)
                 elif "/chargemode/pv_charging/min_soc" in msg.topic:
                     self._validate_value(msg, int, [(0, 100)], pub_json=True)
                 elif "/chargemode/pv_charging/min_soc_current" in msg.topic:
                     self._validate_value(msg, int, [(6, 32)], pub_json=True)
+                elif "/chargemode/pv_charging/dc_min_soc_current" in msg.topic:
+                    self._validate_value(msg, float, [(4, 300)], pub_json=True)
                 elif "/chargemode/pv_charging/max_soc" in msg.topic:
                     self._validate_value(msg, int, [(0, 101)], pub_json=True)
                 elif "/chargemode/scheduled_charging/plans/" in msg.topic and "/active" in msg.topic:
