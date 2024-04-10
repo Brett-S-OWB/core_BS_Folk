@@ -97,6 +97,7 @@ class ChargepointModule(AbstractChargepoint):
                 if chargepoint_state.charge_state:
                     try:
                         self.efficiency = chargepoint_state.charging_power / chargepoint_state.power
+                        log.debug(f"Effizienz: {self.efficiency}")
                     except ZeroDivisionError:
                         self.efficiency = None
                 else:
