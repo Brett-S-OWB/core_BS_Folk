@@ -59,8 +59,9 @@ class ChargepointModule(AbstractChargepoint):
             with self.__client_error_context:
                 ip_address = self.config.configuration.ip_address
                 raw_current = self.subtract_conversion_loss_from_current(current)
-                log.debug(f"DC-Stromstärke: {raw_current}A ≙ {raw_current*3*230/1000}kW")
-                self.__session.post('http://'+ip_address+'/connect.php', data={'ampere': raw_current})
+                raw_power = raw_current * 3 * 230 / 1000
+                log.debug(f"DC-Stromstärke: {raw_current}A ≙ {raw_power}kW")
+                self.__session.post('http://'+ip_address+'/connect.php', data={'power': raw_power})
 
     def subtract_conversion_loss_from_current(self, current: float) -> float:
         return current * (self.efficiency if self.efficiency else 0.9)
@@ -80,7 +81,6 @@ class ChargepointModule(AbstractChargepoint):
                     charging_power=json_rsp["charging_power"],
                     charging_voltage=json_rsp["charging_voltage"],
                     currents=json_rsp["currents"],
-                    evse_current=json_rsp["evse_current"],
                     exported=json_rsp["exported"],
                     imported=json_rsp["imported"],
                     phases_in_use=3,
