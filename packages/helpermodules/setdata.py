@@ -590,6 +590,8 @@ class SetData:
     def process_chargepoint_get_topics(self, msg):
         if ("/get/voltages" in msg.topic):
             self._validate_value(msg, float, [(0, 500)], collection=list)
+        # elif ("/get/soc" in msg.topic):
+        #     self._validate_value(msg, float, [(0, 100)])
         elif ("/get/currents" in msg.topic or
               "/get/powers" in msg.topic):
             self._validate_value(msg, float, collection=list)
@@ -627,8 +629,6 @@ class SetData:
             self._validate_value(msg, str)
         elif "/get/rfid_timestamp" in msg.topic:
             self._validate_value(msg, float)
-        elif ("/get/soc" in msg.topic):
-            self._validate_value(msg, float, [(0, 100)])
         else:
             self.__unknown_topic(msg)
 
