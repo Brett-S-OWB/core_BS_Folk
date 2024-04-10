@@ -59,8 +59,8 @@ class ChargepointModule(AbstractChargepoint):
             with self.__client_error_context:
                 ip_address = self.config.configuration.ip_address
                 raw_current = self.subtract_conversion_loss_from_current(current)
-                raw_power = raw_current * 3 * 230 / 1000
-                log.debug(f"DC-Stromstärke: {raw_current}A ≙ {raw_power}kW")
+                raw_power = raw_current * 3 * 230
+                log.debug(f"DC-Stromstärke: {raw_current}A ≙ {raw_power / 1000}kW")
                 self.__session.post('http://'+ip_address+'/connect.php', data={'power': raw_power})
 
     def subtract_conversion_loss_from_current(self, current: float) -> float:
@@ -107,7 +107,7 @@ class ChargepointModule(AbstractChargepoint):
                         json_rsp["state"] == ChargingStatus.PREPARING_EV_READY.value or
                         json_rsp["state"] == ChargingStatus.CHARGING.value or
                         json_rsp["state"] == ChargingStatus.FINISHING.value):
-                    raise Exception(f"Ladepunkt nicht verfügbar. Status: {ChargepointState(json_rsp['state']).name}")
+                    raise Exception(f"Ladepunkt nicht verfügbar. Status: {ChargingStatus(json_rsp['state'])}")
                 self.store.set(chargepoint_state)
                 self.__client_error_context.reset_error_counter()
     # Test mit pro
