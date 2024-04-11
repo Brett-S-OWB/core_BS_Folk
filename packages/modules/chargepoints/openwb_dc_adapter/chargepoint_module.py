@@ -77,6 +77,11 @@ class ChargepointModule(AbstractChargepoint):
                 ip_address = self.config.configuration.ip_address
                 json_rsp = self.__session.get('http://'+ip_address+'/connect.php').json()
 
+                if json_rsp["fault_state"] == 1:
+                    self.fault_state.warning(json_rsp["fault_str"])
+                elif json_rsp["fault_state"] == 2:
+                    raise Exception(json_rsp["fault_str"])
+
                 charging_power = json_rsp["charging_power"]
                 imported, exported = self.sim_counter.sim_count(charging_power)
                 chargepoint_state = ChargepointState(
