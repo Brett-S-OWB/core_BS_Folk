@@ -9,6 +9,7 @@ from modules.common.abstract_chargepoint import AbstractChargepoint
 from modules.common.abstract_device import DeviceDescriptor
 from modules.common.component_context import SingleComponentUpdateContext
 from modules.common.fault_state import ComponentInfo, FaultState
+from modules.common.simcount import SimCounterChargepoint
 from modules.common.store import get_chargepoint_value_store
 from modules.common.component_state import ChargepointState
 from modules.common import req
@@ -38,6 +39,7 @@ class ChargepointModule(AbstractChargepoint):
         self.fault_state = FaultState(ComponentInfo(
             self.config.id,
             "Ladepunkt", "chargepoint"))
+        self.sim_counter = SimCounterChargepoint(self.config.id)
         self.__session = req.get_http_session()
         self.__client_error_context = ErrorCounterContext(
             "Anhaltender Fehler beim Auslesen des Ladepunkts. Sollstromstärke wird zurückgesetzt.")
@@ -75,14 +77,16 @@ class ChargepointModule(AbstractChargepoint):
                 ip_address = self.config.configuration.ip_address
                 json_rsp = self.__session.get('http://'+ip_address+'/connect.php').json()
 
+                charging_power = json_rsp["charging_power"]
+                imported, exported = self.sim_counter.sim_count(charging_power)
                 chargepoint_state = ChargepointState(
                     charge_state=json_rsp["charge_state"],
                     charging_current=json_rsp["charging_current"],
-                    charging_power=json_rsp["charging_power"],
+                    charging_power=charging_power,
                     charging_voltage=json_rsp["charging_voltage"],
                     currents=json_rsp["currents"],
-                    exported=json_rsp["exported"],
-                    imported=json_rsp["imported"],
+                    exported=exported,
+                    imported=imported,
                     phases_in_use=3,
                     power=json_rsp["power_all"],
                     powers=[json_rsp["power_all"]]*3,
