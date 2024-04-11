@@ -97,6 +97,7 @@ class UpdateConfig:
         "^openWB/chargepoint/[0-9]+/get/powers$",
         "^openWB/chargepoint/[0-9]+/get/power_factors$",
         "^openWB/chargepoint/[0-9]+/get/voltages$",
+        "^openWB/chargepoint/[0-9]+/get/simulation$",
         "^openWB/chargepoint/[0-9]+/get/state_str$",
         "^openWB/chargepoint/[0-9]+/get/connected_vehicle/soc$",
         "^openWB/chargepoint/[0-9]+/get/connected_vehicle/info$",

@@ -629,6 +629,8 @@ class SetData:
             self._validate_value(msg, float, [(0, 100)])
         elif "/get/rfid_timestamp" in msg.topic:
             self._validate_value(msg, float)
+        elif "/get/simulation" in msg.topic:
+            self._validate_value(msg, "json")
         else:
             self.__unknown_topic(msg)
 

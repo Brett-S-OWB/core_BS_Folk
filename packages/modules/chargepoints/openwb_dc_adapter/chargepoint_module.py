@@ -115,7 +115,8 @@ class ChargepointModule(AbstractChargepoint):
                         json_rsp["state"] == ChargingStatus.PREPARING_TAGID_READY.value or
                         json_rsp["state"] == ChargingStatus.PREPARING_EV_READY.value or
                         json_rsp["state"] == ChargingStatus.CHARGING.value or
-                        json_rsp["state"] == ChargingStatus.FINISHING.value):
+                        json_rsp["state"] == ChargingStatus.FINISHING.value or
+                        json_rsp["state"] == ChargingStatus.UNAVAILABLE_CONN_OBJ.value):
                     raise Exception(f"Ladepunkt nicht verfügbar. Status: {ChargingStatus(json_rsp['state'])}")
                 self.store.set(chargepoint_state)
                 self.__client_error_context.reset_error_counter()
