@@ -98,6 +98,7 @@ class UpdateSoc:
                 if ev.soc_module.general_config.use_soc_from_cp:
                     soc_from_cp = cp.data.get.soc
                     timestamp_soc_from_cp = cp.data.get.soc_timestamp
+                    log.debug(f"cp.num {cp.num} cp.data.get {cp.data.get}")
                     log.debug(f"1 soc_from_cp: {soc_from_cp}, timestamp_soc_from_cp: {timestamp_soc_from_cp}")
                 else:
                     soc_from_cp = None
