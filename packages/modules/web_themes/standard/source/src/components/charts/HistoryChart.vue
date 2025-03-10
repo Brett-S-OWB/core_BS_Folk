@@ -16,6 +16,7 @@ import { Chart, registerables } from 'chart.js';
 import { useMqttStore } from 'src/stores/mqtt-store';
 import 'chartjs-adapter-luxon';
 
+//changed imports
 Chart.register(...registerables);
 const $q = useQuasar();
 
