@@ -4,6 +4,7 @@ export type Align = Record<string, 'left' | 'right' | 'center'>;
 
 export type columnConfig = {
   fields: string[];
+  fieldsExpansionRow?: string[];
   labels?: Record<string, string>;
   align?: Align;
 };
@@ -12,5 +13,6 @@ export interface BodySlotProps {
   key: string | number;
   row: Record<string, unknown>;
   cols: QTableColumn[];
+  colsMap: Record<string, QTableColumn>;
   expand: boolean;
 }

@@ -1,18 +1,10 @@
 <template>
   <div class="chart-container">
-    <!-- Make the chart take the remaining space -->
-    <div class="chart-wrapper">
-      <ChartjsLine
-        :data="lineChartData"
-        :options="chartOptions"
-        ref="chartRef"
-      />
-    </div>
-    <!-- Place the legend at the top -->
-    <HistoryChartLegend
-      v-if="legendDisplay"
-      :chart="chartRef?.chart || null"
-      class="legend-wrapper q-mt-sm"
+    <ChartjsLine
+      :data="lineChartData"
+      :options="chartOptions"
+      :class="'chart'"
+      ref="chartRef"
     />
   </div>
 </template>
@@ -31,17 +23,16 @@ import {
   TimeScale,
   Tooltip,
   Filler,
-  // ChartEvent,
-  // LegendItem,
-  // LegendElement,
-  // ChartTypeRegistry,
+  ChartEvent,
+  LegendItem,
+  LegendElement,
+  ChartTypeRegistry,
   ChartDataset,
   ChartType,
 } from 'chart.js';
 import { useMqttStore } from 'src/stores/mqtt-store';
 import { useLocalDataStore } from 'src/stores/localData-store';
 import { GraphDataPoint } from 'src/stores/mqtt-store-model';
-import HistoryChartLegend from 'src/components/charts/historyChart/HistoryChartLegend.vue';
 import 'chartjs-adapter-luxon';
 import type {
   HistoryChartTooltipItem,
@@ -257,7 +248,7 @@ const chartOptions = computed(() => ({
   maintainAspectRatio: false,
   plugins: {
     legend: {
-      display: false,
+      display: legendDisplay.value,
       fullSize: true,
       align: 'center' as const,
       position: 'bottom' as const,
@@ -265,25 +256,25 @@ const chartOptions = computed(() => ({
         boxWidth: 19,
         boxHeight: 0.1,
       },
-      // onClick: (
-      //   e: ChartEvent,
-      //   legendItem: LegendItem,
-      //   legend: LegendElement<keyof ChartTypeRegistry>,
-      // ) => {
-      //   const index = legendItem.datasetIndex!;
-      //   const chartInstance = legend.chart;
-      //   const datasetName = legendItem.text;
+      onClick: (
+        e: ChartEvent,
+        legendItem: LegendItem,
+        legend: LegendElement<keyof ChartTypeRegistry>,
+      ) => {
+        const index = legendItem.datasetIndex!;
+        const chartInstance = legend.chart;
+        const datasetName = legendItem.text;
 
-      //   // Toggle visibility using the store
-      //   localDataStore.toggleDataset(datasetName);
+        // Toggle visibility using the store
+        localDataStore.toggleDataset(datasetName);
 
-      //   // Update chart visibility
-      //   if (localDataStore.isDatasetHidden(datasetName)) {
-      //     chartInstance.hide(index);
-      //   } else {
-      //     chartInstance.show(index);
-      //   }
-      // },
+        // Update chart visibility
+        if (localDataStore.isDatasetHidden(datasetName)) {
+          chartInstance.hide(index);
+        } else {
+          chartInstance.show(index);
+        }
+      },
     },
     tooltip: {
       mode: 'index' as const,
@@ -358,23 +349,11 @@ const chartOptions = computed(() => ({
   position: relative;
   width: 100%;
   height: 100%;
-  display: flex;
-  flex-direction: column;
 }
 
-.legend-wrapper {
-  flex: 0 0 auto; /* Don't grow, don't shrink, auto height based on content */
+.chart {
+  object-fit: contain;
+  height: 100%;
+  width: 100%;
 }
-
-.chart-wrapper {
-  flex: 1; /* Take all remaining space */
-  min-height: 0; /* Important for flex child to be able to shrink below content size */
-  position: relative;
-}
-
-/* The chart itself needs to fill its container
-:deep(canvas) {
-  height: 100% !important;
-  width: 100% !important;
-}  */
 </style>

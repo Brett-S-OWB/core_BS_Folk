@@ -29,13 +29,15 @@
       <div class="row q-mt-sm">
         <div class="col">
           <div class="text-subtitle2">Leistung</div>
-          {{ power }}
-          <q-badge rounded color="primary" :label="phaseNumber">
-            <q-tooltip class="bg-primary">Phasenanzahl</q-tooltip>
-          </q-badge>
-          {{ chargingCurrent }}
+          <div class="col no-wrap">
+            <ChargePointPowerData
+              :power="(power as string)"
+              :phase-number="(phaseNumber as number)"
+              :current="(chargingCurrent as string)"
+            />
+          </div>
         </div>
-        <div class="col q-pl-sm">
+        <div class="col text-right">
           <div class="text-subtitle2">geladen</div>
           {{ energyChargedPlugged }}
         </div>
@@ -99,6 +101,7 @@ import ChargePointVehicleSelect from './ChargePointVehicleSelect.vue';
 import ChargePointSettings from './ChargePointSettings.vue';
 import ManualSocDialog from './ManualSocDialog.vue';
 import ChargePointTimeCharging from './ChargePointTimeCharging.vue';
+import ChargePointPowerData from './ChargePointPowerData.vue';
 import { useQuasar } from 'quasar';
 
 const mqttStore = useMqttStore();

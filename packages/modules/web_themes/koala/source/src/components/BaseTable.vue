@@ -41,7 +41,7 @@
       <!-- header ----------------------------------------------------------->
       <template v-if="props.rowExpandable" #header="hdr">
         <q-tr :props="hdr">
-          <!-- space for arrow column -->
+          <!-- spacer for arrow column -->
           <q-th auto-width :props="{ ...hdr, col: {} }" />
 
           <!-- the other columns -->
@@ -112,7 +112,7 @@
         </q-tr>
       </template>
 
-      <!-- forward any other slots not related to table  e.g top search field -------------------->
+      <!-- forward any other slots not related to table e.g top search field -------------------->
       <template
         v-for="slotName in forwardedSlotNames"
         :key="slotName"
@@ -129,7 +129,6 @@ import { computed, ComputedRef, ref, useSlots } from 'vue';
 import type { QTableColumn, QTableProps } from 'quasar';
 import { BodySlotProps } from 'src/components/Models/base-table-model';
 
-/* ------------------------------------------------------------------ props */
 const props = defineProps<{
   items: number[];
   rowData:
