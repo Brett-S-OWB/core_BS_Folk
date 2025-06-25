@@ -1,4 +1,5 @@
 <template>
+  <div class="column full-height">
   <BaseCarousel
     v-if="chargePointIds.length <= cardViewBreakpoint"
     :items="chargePointIds"
@@ -8,8 +9,9 @@
     </template>
   </BaseCarousel>
 
+  <div v-else class="scroll-container">
   <BaseTable
-    v-else
+
     :items="chargePointIds"
     :row-data="tableRowData"
     :column-config="isMobile ? tableColumnsMobile : columnConfigDesktop"
@@ -96,6 +98,8 @@
       </div>
     </template>
   </BaseTable>
+  </div>
+
 
   <!-- ChargePointCard Dialog -->
   <q-dialog
@@ -125,6 +129,7 @@
       </ChargePointCard>
     </div>
   </q-dialog>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -253,5 +258,11 @@ const onRowClick = (row: ChargePointRow) => {
 
 .card-footer {
   height: 1.9em;
+}
+/* Added to enable scrolling in Safari browser */
+.scroll-container {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
 }
 </style>

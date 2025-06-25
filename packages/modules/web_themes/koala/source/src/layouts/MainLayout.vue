@@ -116,7 +116,7 @@
     </q-drawer>
 
     <!-- Page container that takes the remaining height -->
-    <q-page-container class="column flex centered-container">
+    <q-page-container class="column flex centered-container full-height">
       <router-view />
     </q-page-container>
   </q-layout>
@@ -162,5 +162,18 @@ onMounted(() => {
   max-width: 1000px;
   margin-left: auto;
   margin-right: auto;
+}
+
+/* Added to enable scrolling in Safari browser */
+.q-layout {
+  height: 100vh; /* Ensures layout fills viewport exactly */
+  overflow: hidden; /* Prevent entire-page scroll */
+}
+
+/* Added to enable scrolling in Safari browser */
+.q-page-container {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden; /* Important: prevents scroll leakage */
 }
 </style>

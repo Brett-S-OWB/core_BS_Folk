@@ -1,5 +1,5 @@
 <template>
-  <q-page class="column">
+  <q-page class="column full-height">
     <!-- Top Carousel -->
     <div class="row justify-center full-width chart-section">
       <ChartCarousel />
@@ -26,7 +26,7 @@
         <!-- Charge Points -->
         <q-tab-panel
           name="charge-points"
-          class="q-pa-none column"
+          class="q-pa-none column scrollable-panel"
           :class="[
             'q-pa-none column',
             isChargePointTableView ? '' : 'remove-flex-properties',
@@ -95,6 +95,13 @@ const isVehicleTableView = computed(() => {
   min-height: 0; /* important for flexbox overflow */
   display: flex;
   flex-direction: column;
+}
+
+/* Added to enable scrolling in Safari browser */
+.scrollable-panel {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
 }
 /* "remove-flex-properties" prevents cards from stretching total vertical space in card view  */
 .remove-flex-properties {
