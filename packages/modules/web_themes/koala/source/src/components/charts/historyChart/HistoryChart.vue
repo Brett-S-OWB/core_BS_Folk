@@ -69,7 +69,7 @@ const props = defineProps<{
 const chartRef = ref<ChartComponentRef | null>(null);
 
 const legendLarge = computed(() =>
-  lineChartData?.value?.datasets.length > 15 ? true : false,
+  lineChartData?.value?.datasets.length > 5 ? true : false,
 );
 
 const applyHiddenDatasetsToChart = <TType extends ChartType, TData>(
@@ -124,6 +124,7 @@ const chartRange = computed(
 const chargePointDatasets = computed(() =>
   chargePointIds.value.map((cpId) => ({
     label: `${chargePointNames.value(cpId)}`,
+    category: 'chargepoint',
     unit: 'kW',
     borderColor: '#4766b5',
     backgroundColor: 'rgba(71, 102, 181, 0.2)',
@@ -147,6 +148,7 @@ const vehicleDatasets = computed(() =>
       if (selectedData.value.some((item) => socKey in item)) {
         return {
           label: `${vehicle.name} SoC`,
+          category: 'vehicle',
           unit: '%',
           borderColor: '#9F8AFF',
           borderWidth: 2,
@@ -174,6 +176,7 @@ const lineChartData = computed(() => {
     datasets: [
       {
         label: gridMeterName.value,
+        category: 'component',
         unit: 'kW',
         borderColor: '#a33c42',
         backgroundColor: 'rgba(239,182,188, 0.2)',
@@ -190,6 +193,7 @@ const lineChartData = computed(() => {
       },
       {
         label: 'Hausverbrauch',
+        category: 'component',
         unit: 'kW',
         borderColor: '#949aa1',
         backgroundColor: 'rgba(148, 154, 161, 0.2)',
@@ -206,6 +210,7 @@ const lineChartData = computed(() => {
       },
       {
         label: 'PV ges.',
+        category: 'component',
         unit: 'kW',
         borderColor: 'green',
         backgroundColor: 'rgba(144, 238, 144, 0.2)',
@@ -222,6 +227,7 @@ const lineChartData = computed(() => {
       },
       {
         label: 'Speicher ges.',
+        category: 'battery',
         unit: 'kW',
         borderColor: '#b5a647',
         backgroundColor: 'rgba(181, 166, 71, 0.2)',
@@ -238,6 +244,7 @@ const lineChartData = computed(() => {
       },
       {
         label: 'Speicher SoC',
+        category: 'battery',
         unit: '%',
         borderColor: '#FFB96E',
         borderWidth: 2,
@@ -261,6 +268,7 @@ const lineChartData = computed(() => {
 const chartOptions = computed(() => ({
   responsive: true,
   maintainAspectRatio: false,
+  animation: { duration: 0 },
   plugins: {
     legend: {
       display: !legendLarge.value && legendDisplay.value,
