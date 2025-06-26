@@ -114,9 +114,7 @@
         </q-list>
       </q-scroll-area>
     </q-drawer>
-
-    <!-- Page container that takes the remaining height -->
-    <q-page-container class="column flex centered-container full-height">
+    <q-page-container class="centered-container">
       <router-view />
     </q-page-container>
   </q-layout>
@@ -157,12 +155,14 @@ onMounted(() => {
 });
 </script>
 
-<style scoped>
-.q-layout {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
+<style>
+html, body, #q-app, .q-layout, .q-page-container, .q-page {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
+
 .centered-container {
   max-width: 1000px;
   margin: 0 auto;
