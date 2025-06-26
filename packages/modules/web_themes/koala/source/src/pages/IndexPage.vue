@@ -1,5 +1,6 @@
 <template>
-  <q-page class="column">
+  <q-page :class="[{ 'full-height': isTableMode }]">
+    <div :class="['centered-container', { 'full-height': isTableMode, 'flex': isTableMode, 'column': isTableMode }]">
     <!-- Top Carousel -->
     <div class="row justify-center full-width chart-section">
       <ChartCarousel />
@@ -7,12 +8,7 @@
 
     <!-- Navigation Tabs -->
     <div
-      :class="[
-        (tab === 'charge-points' && isChargePointTableView) ||
-        (tab === 'vehicles' && isVehicleTableView)
-          ? 'tab-section-flex'
-          : '',
-      ]"
+      :class="isTableMode ? 'tab-section-flex' : ''"
     >
       <q-tabs v-model="tab" dense class="q-tabs__content--align-justify">
         <q-tab name="charge-points" title="Ladepunkte">
@@ -33,24 +29,14 @@
         <!-- Charge Points -->
         <q-tab-panel
           name="charge-points"
-          :class="[
-            'q-pa-none column',
-            isChargePointTableView
-              ? 'scroll-tab-section'
-              : 'remove-flex-properties',
-          ]"
+          class="q-pa-none column"
         >
           <ChargePointInformation />
         </q-tab-panel>
         <!-- Vehicles -->
         <q-tab-panel
           name="vehicles"
-          :class="[
-            'q-pa-none column',
-            isVehicleTableView
-              ? 'scroll-tab-section'
-              : 'remove-flex-properties',
-          ]"
+          class="q-pa-none column"
         >
           <VehicleInformation />
         </q-tab-panel>
@@ -63,6 +49,7 @@
         <SmartHomeInformation />
       </q-tab-panel> -->
       </q-tab-panels>
+    </div>
     </div>
   </q-page>
 </template>
@@ -95,6 +82,13 @@ const isVehicleTableView = computed(() => {
     mqttStore.themeConfiguration?.vehicle_card_view_breakpoint || 4;
   return mqttStore.vehicleList.length > cardViewBreakpoint;
 });
+
+const isTableMode = computed(() =>
+  (tab.value === 'charge-points' && isChargePointTableView.value) ||
+  (tab.value === 'vehicles' && isVehicleTableView.value)
+);
+
+
 </script>
 
 <style scoped>
@@ -103,9 +97,10 @@ const isVehicleTableView = computed(() => {
 }
 
 .scroll-tab-section {
+  display: flex;
+  flex-direction: column;
   flex: 1 1 0;
   min-height: 0;
-  overflow-y: auto;
 }
 .remove-flex-properties {
   flex: none !important;
@@ -117,5 +112,13 @@ const isVehicleTableView = computed(() => {
   min-height: 0;
   display: flex;
   flex-direction: column;
+}
+
+
+.centered-container {
+  max-width: 1000px;
+  margin: 0 auto;
+  width: 100%;      /* ensures stretching when < 1000px */
+
 }
 </style>

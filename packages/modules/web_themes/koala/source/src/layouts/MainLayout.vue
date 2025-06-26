@@ -116,7 +116,7 @@
     </q-drawer>
 
     <!-- Page container that takes the remaining height -->
-    <q-page-container class="column flex centered-container">
+    <q-page-container class="column flex centered-container full-height">
       <router-view />
     </q-page-container>
   </q-layout>
@@ -158,9 +158,22 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.centered-container {
-  max-width: 1000px;
-  margin-left: auto;
-  margin-right: auto;
+
+
+/* Added to enable scrolling in Safari browser */
+.q-layout {
+  display: flex;
+  flex-direction: column;
+  height: 100vh; /* Ensures layout fills viewport exactly */
 }
+/* Added to enable scrolling in Safari browser */
+.q-page-container {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 0;
+  min-height: 0;
+  height: 100%;
+}
+
+
 </style>
