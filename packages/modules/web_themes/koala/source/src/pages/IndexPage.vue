@@ -6,7 +6,14 @@
     </div>
 
     <!-- Navigation Tabs -->
-    <div class="tab-section">
+    <div
+      :class="[
+        (tab === 'charge-points' && isChargePointTableView) ||
+        (tab === 'vehicles' && isVehicleTableView)
+          ? 'tab-section-flex'
+          : '',
+      ]"
+    >
       <q-tabs v-model="tab" dense class="q-tabs__content--align-justify">
         <q-tab name="charge-points" title="Ladepunkte">
           <q-icon name="ev_station" size="md" color="primary" />
@@ -24,11 +31,27 @@
       <!-- Tab Panels -->
       <q-tab-panels v-model="tab" class="col">
         <!-- Charge Points -->
-        <q-tab-panel name="charge-points" class="q-pa-none column">
+        <q-tab-panel
+          name="charge-points"
+          :class="[
+            'q-pa-none column',
+            isChargePointTableView
+              ? 'scroll-tab-section'
+              : 'remove-flex-properties',
+          ]"
+        >
           <ChargePointInformation />
         </q-tab-panel>
         <!-- Vehicles -->
-        <q-tab-panel name="vehicles" class="q-pa-none column">
+        <q-tab-panel
+          name="vehicles"
+          :class="[
+            'q-pa-none column',
+            isVehicleTableView
+              ? 'scroll-tab-section'
+              : 'remove-flex-properties',
+          ]"
+        >
           <VehicleInformation />
         </q-tab-panel>
         <!-- Batteries -->
@@ -45,7 +68,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
+import { useMqttStore } from 'src/stores/mqtt-store';
 import ChartCarousel from 'src/components/ChartCarousel.vue';
 import ChargePointInformation from 'src/components/ChargePointInformation.vue';
 import BatteryInformation from 'src/components/BatteryInformation.vue';
@@ -57,10 +81,41 @@ defineOptions({
 });
 
 const tab = ref<string>('charge-points');
+
+const mqttStore = useMqttStore();
+
+const isChargePointTableView = computed(() => {
+  const cardViewBreakpoint =
+    mqttStore.themeConfiguration?.chargePoint_card_view_breakpoint || 4;
+  return mqttStore.chargePointIds.length > cardViewBreakpoint;
+});
+
+const isVehicleTableView = computed(() => {
+  const cardViewBreakpoint =
+    mqttStore.themeConfiguration?.vehicle_card_view_breakpoint || 4;
+  return mqttStore.vehicleList.length > cardViewBreakpoint;
+});
 </script>
 
 <style scoped>
 .chart-section {
   height: 40vh;
+}
+
+.scroll-tab-section {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow-y: auto;
+}
+.remove-flex-properties {
+  flex: none !important;
+  height: auto !important;
+}
+
+.tab-section-flex {
+  flex: 1 1 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
 }
 </style>

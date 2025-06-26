@@ -1,7 +1,7 @@
 <template>
-  <div class="q-pa-md">
+  <div class="q-pa-md full-height">
     <q-table
-      class="sticky-header-table"
+      class="sticky-header-table full-height"
       :rows="mappedRows"
       :columns="mappedColumns"
       row-key="id"

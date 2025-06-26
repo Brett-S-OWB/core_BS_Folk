@@ -8,95 +8,95 @@
     </template>
   </BaseCarousel>
 
-  <BaseTable
-    v-else
-    :items="chargePointIds"
-    :row-data="tableRowData"
-    :column-config="isMobile ? tableColumnsMobile : columnConfigDesktop"
-    :search-input-visible="searchInputVisible"
-    :table-height="isMobile ? '35vh' : '40vh'"
-    v-model:filter="filter"
-    :columns-to-search="['vehicle', 'name']"
-    :row-expandable="isMobile"
-    @row-click="onRowClick"
-  >
-    <!-- desktop view table body slots -->
-    <template #body-cell-plugged="slotProps">
-      <q-td :class="`text-${slotProps.col.align}`">
-        <ChargePointStateIcon :charge-point-id="slotProps.row.id" />
-      </q-td>
-    </template>
-
-    <template #body-cell-chargeMode="slotProps">
-      <q-td :class="`text-${slotProps.col.align}`">
-        <ChargePointMode :charge-point-id="slotProps.row.id" />
-      </q-td>
-    </template>
-
-    <template #body-cell-timeCharging="slotProps">
-      <q-td :class="`text-${slotProps.col.align}`">
-        <ChargePointTimeCharging
-          :charge-point-id="slotProps.row.id"
-          :readonly="true"
-          :toolTip="true"
-          :icon-size="'xs'"
-        />
-      </q-td>
-    </template>
-
-    <template #body-cell-powerColumn="slotProps">
-      <q-td :class="`text-${slotProps.col.align}`">
-        <ChargePointPowerData
-          :power="slotProps.row.power"
-          :phase-number="slotProps.row.phaseNumber"
-          :current="slotProps.row.current"
-          :column-display-format="isMobile"
-        />
-      </q-td>
-    </template>
-    <!-- mobile view table body slots -->
-    <!-- mobile view chargepoint name and vehicle name displayed in one field -->
-    <template #body-cell-nameAndVehicle="slotProps">
-      <q-td :class="`text-${slotProps.col.align}`">
-        {{ slotProps.row.name }}<br />
-        <span class="text-caption">{{ slotProps.row.vehicle }}</span>
-      </q-td>
-    </template>
-
-    <!-- mobile view chargepoint chargemode, plug status and time charging displayed in one field -->
-    <template #body-cell-modePluggedTimeCharging="slotProps">
-      <q-td :class="`text-${slotProps.col.align}`">
-        <div class="items-center">
-          <ChargePointMode :charge-point-id="slotProps.row.id" />
+  <div v-else class="scroll-container">
+    <BaseTable
+      :items="chargePointIds"
+      :row-data="tableRowData"
+      :column-config="isMobile ? tableColumnsMobile : columnConfigDesktop"
+      :search-input-visible="searchInputVisible"
+      v-model:filter="filter"
+      :columns-to-search="['vehicle', 'name']"
+      :row-expandable="isMobile"
+      @row-click="onRowClick"
+    >
+      <!-- desktop view table body slots -->
+      <template #body-cell-plugged="slotProps">
+        <q-td :class="`text-${slotProps.col.align}`">
           <ChargePointStateIcon :charge-point-id="slotProps.row.id" />
+        </q-td>
+      </template>
+
+      <template #body-cell-chargeMode="slotProps">
+        <q-td :class="`text-${slotProps.col.align}`">
+          <ChargePointMode :charge-point-id="slotProps.row.id" />
+        </q-td>
+      </template>
+
+      <template #body-cell-timeCharging="slotProps">
+        <q-td :class="`text-${slotProps.col.align}`">
           <ChargePointTimeCharging
             :charge-point-id="slotProps.row.id"
             :readonly="true"
             :toolTip="true"
             :icon-size="'xs'"
           />
-        </div>
-      </q-td>
-    </template>
+        </q-td>
+      </template>
 
-    <!-- Pass expansion row data to BaseTable.vue -->
-    <template #row-expand="slotProps">
-      <div class="q-pa-xs column q-gutter-y-xs">
-        <div
-          v-for="column in expansionColumnsMobile"
-          :key="column.field"
-          class="row items-start"
-        >
-          <!-- label ------------------------------------------------>
-          <div class="col-5 text-caption text-bold">{{ column.label }}:</div>
-          <!-- value --------------------------------------------------------->
-          <div class="col-7 text-right">
-            {{ slotProps.row[column.field] }}
+      <template #body-cell-powerColumn="slotProps">
+        <q-td :class="`text-${slotProps.col.align}`">
+          <ChargePointPowerData
+            :power="slotProps.row.power"
+            :phase-number="slotProps.row.phaseNumber"
+            :current="slotProps.row.current"
+            :column-display-format="isMobile"
+          />
+        </q-td>
+      </template>
+      <!-- mobile view table body slots -->
+      <!-- mobile view chargepoint name and vehicle name displayed in one field -->
+      <template #body-cell-nameAndVehicle="slotProps">
+        <q-td :class="`text-${slotProps.col.align}`">
+          {{ slotProps.row.name }}<br />
+          <span class="text-caption">{{ slotProps.row.vehicle }}</span>
+        </q-td>
+      </template>
+
+      <!-- mobile view chargepoint chargemode, plug status and time charging displayed in one field -->
+      <template #body-cell-modePluggedTimeCharging="slotProps">
+        <q-td :class="`text-${slotProps.col.align}`">
+          <div class="items-center">
+            <ChargePointMode :charge-point-id="slotProps.row.id" />
+            <ChargePointStateIcon :charge-point-id="slotProps.row.id" />
+            <ChargePointTimeCharging
+              :charge-point-id="slotProps.row.id"
+              :readonly="true"
+              :toolTip="true"
+              :icon-size="'xs'"
+            />
+          </div>
+        </q-td>
+      </template>
+
+      <!-- Pass expansion row data to BaseTable.vue -->
+      <template #row-expand="slotProps">
+        <div class="q-pa-xs column q-gutter-y-xs">
+          <div
+            v-for="column in expansionColumnsMobile"
+            :key="column.field"
+            class="row items-start"
+          >
+            <!-- label ------------------------------------------------>
+            <div class="col-5 text-caption text-bold">{{ column.label }}:</div>
+            <!-- value --------------------------------------------------------->
+            <div class="col-7 text-right">
+              {{ slotProps.row[column.field] }}
+            </div>
           </div>
         </div>
-      </div>
-    </template>
-  </BaseTable>
+      </template>
+    </BaseTable>
+  </div>
 
   <!-- ChargePointCard Dialog -->
   <q-dialog
@@ -254,5 +254,11 @@ const onRowClick = (row: ChargePointRow) => {
 
 .card-footer {
   height: 1.9em;
+}
+
+.scroll-container {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
 }
 </style>

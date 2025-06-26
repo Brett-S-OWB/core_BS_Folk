@@ -8,28 +8,28 @@
     </template>
   </BaseCarousel>
 
-  <BaseTable
-    v-else
-    :items="vehicleIds"
-    :row-data="tableRowData"
-    :column-config="isMobile ? columnConfigMobile : columnConfigDesktop"
-    :search-input-visible="searchInputVisible"
-    :table-height="isMobile ? '35vh' : '40vh'"
-    v-model:filter="filter"
-    :columns-to-search="['name', 'manufacturer', 'model']"
-    :row-expandable="true"
-    @row-click="onRowClick"
-  >
-    <!-- "col" = column must match Quasar naming convention -->
-    <template #body-cell-plugged="slotProps">
-      <q-td :class="`text-${slotProps.col.align}`">
-        <ChargePointStateIcon :vehicle-id="slotProps.row.id" />
-      </q-td>
-    </template>
-    <template #row-expand="slotProps">
-      <VehicleConnectionStateIcon :vehicle-id="slotProps.row.id" />
-    </template>
-  </BaseTable>
+  <div v-else class="scroll-container">
+    <BaseTable
+      :items="vehicleIds"
+      :row-data="tableRowData"
+      :column-config="isMobile ? columnConfigMobile : columnConfigDesktop"
+      :search-input-visible="searchInputVisible"
+      v-model:filter="filter"
+      :columns-to-search="['name', 'manufacturer', 'model']"
+      :row-expandable="true"
+      @row-click="onRowClick"
+    >
+      <!-- "col" = column must match Quasar naming convention -->
+      <template #body-cell-plugged="slotProps">
+        <q-td :class="`text-${slotProps.col.align}`">
+          <ChargePointStateIcon :vehicle-id="slotProps.row.id" />
+        </q-td>
+      </template>
+      <template #row-expand="slotProps">
+        <VehicleConnectionStateIcon :vehicle-id="slotProps.row.id" />
+      </template>
+    </BaseTable>
+  </div>
 
   <!-- VehicleCard Dialog -->
   <q-dialog
@@ -147,5 +147,11 @@ const onRowClick = (row: VehicleRow) => {
 
 .card-footer {
   height: 1.9em;
+}
+
+.scroll-container {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
 }
 </style>
