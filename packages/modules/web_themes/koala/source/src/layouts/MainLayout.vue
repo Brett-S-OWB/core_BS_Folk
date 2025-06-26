@@ -158,22 +158,14 @@ onMounted(() => {
 </script>
 
 <style scoped>
-
-
-/* Added to enable scrolling in Safari browser */
 .q-layout {
   display: flex;
   flex-direction: column;
-  height: 100vh; /* Ensures layout fills viewport exactly */
+  height: 100vh;
 }
-/* Added to enable scrolling in Safari browser */
-.q-page-container {
-  display: flex;
-  flex-direction: column;
-  flex: 1 1 0;
-  min-height: 0;
-  height: 100%;
+.centered-container {
+  max-width: 1000px;
+  margin: 0 auto;
+  width: 100%;
 }
-
-
 </style>

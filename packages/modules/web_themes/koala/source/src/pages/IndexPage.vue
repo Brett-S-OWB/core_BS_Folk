@@ -1,15 +1,12 @@
 <template>
-  <q-page :class="[{ 'full-height': isTableMode }]">
-    <div :class="['centered-container', { 'full-height': isTableMode, 'flex': isTableMode, 'column': isTableMode }]">
+  <q-page :class="isTableMode ? 'full-height flex column' : ''">
     <!-- Top Carousel -->
     <div class="row justify-center full-width chart-section">
       <ChartCarousel />
     </div>
 
     <!-- Navigation Tabs -->
-    <div
-      :class="isTableMode ? 'tab-section-flex' : ''"
-    >
+    <div :class="isTableMode ? 'tab-section-flex' : ''">
       <q-tabs v-model="tab" dense class="q-tabs__content--align-justify">
         <q-tab name="charge-points" title="Ladepunkte">
           <q-icon name="ev_station" size="md" color="primary" />
@@ -27,17 +24,11 @@
       <!-- Tab Panels -->
       <q-tab-panels v-model="tab" class="col">
         <!-- Charge Points -->
-        <q-tab-panel
-          name="charge-points"
-          class="q-pa-none column"
-        >
+        <q-tab-panel name="charge-points" class="q-pa-none column">
           <ChargePointInformation />
         </q-tab-panel>
         <!-- Vehicles -->
-        <q-tab-panel
-          name="vehicles"
-          class="q-pa-none column"
-        >
+        <q-tab-panel name="vehicles" class="q-pa-none column">
           <VehicleInformation />
         </q-tab-panel>
         <!-- Batteries -->
@@ -49,7 +40,6 @@
         <SmartHomeInformation />
       </q-tab-panel> -->
       </q-tab-panels>
-    </div>
     </div>
   </q-page>
 </template>
@@ -71,24 +61,19 @@ const tab = ref<string>('charge-points');
 
 const mqttStore = useMqttStore();
 
-const isChargePointTableView = computed(() => {
-  const cardViewBreakpoint =
-    mqttStore.themeConfiguration?.chargePoint_card_view_breakpoint || 4;
-  return mqttStore.chargePointIds.length > cardViewBreakpoint;
+const isTableMode = computed(() => {
+  if (tab.value === 'charge-points') {
+    const breakpoint =
+      mqttStore.themeConfiguration?.chargePoint_card_view_breakpoint || 4;
+    return mqttStore.chargePointIds.length > breakpoint;
+  }
+  if (tab.value === 'vehicles') {
+    const breakpoint =
+      mqttStore.themeConfiguration?.vehicle_card_view_breakpoint || 4;
+    return mqttStore.vehicleList.length > breakpoint;
+  }
+  return false;
 });
-
-const isVehicleTableView = computed(() => {
-  const cardViewBreakpoint =
-    mqttStore.themeConfiguration?.vehicle_card_view_breakpoint || 4;
-  return mqttStore.vehicleList.length > cardViewBreakpoint;
-});
-
-const isTableMode = computed(() =>
-  (tab.value === 'charge-points' && isChargePointTableView.value) ||
-  (tab.value === 'vehicles' && isVehicleTableView.value)
-);
-
-
 </script>
 
 <style scoped>
@@ -112,13 +97,5 @@ const isTableMode = computed(() =>
   min-height: 0;
   display: flex;
   flex-direction: column;
-}
-
-
-.centered-container {
-  max-width: 1000px;
-  margin: 0 auto;
-  width: 100%;      /* ensures stretching when < 1000px */
-
 }
 </style>
