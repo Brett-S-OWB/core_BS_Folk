@@ -271,7 +271,7 @@ const chartOptions = computed(() => ({
   animation: { duration: 0 },
   plugins: {
     legend: {
-      display: !legendLarge.value && legendDisplay.value,
+      display: false,
       fullSize: true,
       align: 'center' as const,
       position: 'bottom' as const,
