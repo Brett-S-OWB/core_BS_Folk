@@ -46,6 +46,8 @@ import { ref, computed, watch } from 'vue';
 import { useQuasar } from 'quasar';
 import EnergyFlowChart from './charts/energyFlowChart/EnergyFlowChart.vue';
 import HistoryChart from './charts/historyChart/HistoryChart.vue';
+import DailyTotals from './DailyTotals.vue';
+
 import { useLocalDataStore } from 'src/stores/localData-store';
 
 defineOptions({
@@ -67,6 +69,10 @@ const chartCarouselItems = [
   {
     name: 'HistoryChart',
     component: HistoryChart,
+  },
+  {
+    name: 'DailyTotals',
+    component: DailyTotals,
   },
 ];
 const currentSlide = ref<string>(chartCarouselItems[0].name);
