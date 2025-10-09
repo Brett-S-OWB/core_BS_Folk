@@ -8,6 +8,8 @@
           dense-toggle
           expand-separator
           :style="{ backgroundColor: item.bgColor }"
+          header-class="exp-header-tight"
+          header-style="padding: 5px 10px"
         >
           <!-- Header -->
           <template #header>
@@ -20,8 +22,8 @@
                 {{ item.title }}
               </q-item-label>
               <q-item-label caption>
-                <span v-if="item.soc != null">SoC: {{ item.soc }}</span>
-                <span v-if="item.currentW != null">{{ item.currentW.toLocaleString() }} W</span>
+                <span v-if="item.soc != null">SoC: {{ item.soc }}   ::  </span>
+                <span v-if="item.currentW != null">{{ item.currentW.toLocaleString() }}</span>
               </q-item-label>
             </q-item-section>
           </template>
@@ -206,17 +208,5 @@ const totalsData = computed(() => [
   height: 10px;
 }
 
-.custom-list-border {
-  border: 2px solid #1976d2; /* Beispiel: Blau */
-}
 
-/* Für die Trennlinien zwischen den Items */
-.q-list-bordered .q-separator {
-  border-color: #1976d2 !important;
-}
-
-.q-list--bordered .q-list--separator {
-  border-color: #1976d2 !important;
-  border-width: 2px !important;
-}
 </style>
