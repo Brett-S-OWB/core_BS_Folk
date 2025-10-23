@@ -12,7 +12,7 @@ class KoalaWebThemeConfiguration:
                  vehicle_card_view_breakpoint: int = 4,
                  chargePoint_table_search_input_field: bool = False,
                  vehicle_table_search_input_field: bool = False,
-                 top_carousel_slide_order: dict = None
+                 top_carousel_slide_order: list = None
                  ) -> None:
         self.hide_standard_vehicle = hide_standard_vehicle
         self.history_chart_range = history_chart_range
@@ -20,11 +20,11 @@ class KoalaWebThemeConfiguration:
         self.vehicle_card_view_breakpoint = vehicle_card_view_breakpoint
         self.chargePoint_table_search_input_field = chargePoint_table_search_input_field
         self.vehicle_table_search_input_field = vehicle_table_search_input_field
-        self.top_carousel_slide_order = top_carousel_slide_order or {
-            "daily_totals": 1,
-            "history_chart": 2,
-            "flow_diagram": 3
-        }
+        self.top_carousel_slide_order = top_carousel_slide_order or [
+            "flow_diagram",
+            "history_chart",
+            "daily_totals",
+        ]
 
 
 @auto_str
