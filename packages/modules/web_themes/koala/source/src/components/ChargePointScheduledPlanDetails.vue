@@ -173,6 +173,10 @@
           color="positive"
         />
       </div>
+      <ElectricityTariffChart
+        v-if="planEtActive.value"
+        :chargePointId="props.chargePointId"
+      />
       <div class="text-subtitle2 q-mt-sm q-mr-sm">Anzahl Phasen Zielladen</div>
       <div class="row items-center justify-center q-ma-none q-pa-none no-wrap">
         <q-btn-group class="col">
@@ -219,6 +223,7 @@
 <script setup lang="ts">
 import { useMqttStore } from 'src/stores/mqtt-store';
 import { useQuasar } from 'quasar';
+import ElectricityTariffChart from './ElectricityTariffChart.vue';
 import SliderStandard from './SliderStandard.vue';
 import ToggleStandard from './ToggleStandard.vue';
 import { computed } from 'vue';

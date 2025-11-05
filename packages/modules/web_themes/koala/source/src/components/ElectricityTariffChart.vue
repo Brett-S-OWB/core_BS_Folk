@@ -1,14 +1,87 @@
 <template>
-  <div class="chartContainer">
-    <ChartjsLine
-      v-if="chartDataRead"
-      ref="priceChart"
-      :data="chartDataObject"
-      :options="myChartOptions"
-      class="chart"
-      @click="chartClick"
-    />
+  <div class="text-subtitle2 q-my-sm">
+    Preisgrenze für strompreisbasiertes Laden
   </div>
+  <div class="row no-wrap items-center justify-between q-mb-xs q-gutter-x-xs">
+    <div class="col-auto">
+      <q-btn
+        v-if="maxPrice"
+        class="col-auto q-mr-xs"
+        label="-1,00"
+        color="grey"
+        size="sm"
+        dense
+        @click="maxPrice = maxPrice - 1"
+      />
+      <q-btn
+        v-if="maxPrice"
+        class="col-auto q-mr-xs"
+        label="-0,10"
+        color="grey"
+        size="sm"
+        dense
+        @click="maxPrice = maxPrice - 0.1"
+      />
+      <q-btn
+        v-if="maxPrice"
+        class="col-auto"
+        label="-0,01"
+        color="grey"
+        size="sm"
+        dense
+        @click="maxPrice = maxPrice - 0.01"
+      />
+    </div>
+    <div class="col-auto q-mx-sm">
+      {{
+        maxPrice?.toLocaleString(undefined, {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        }) + ' ct/kWh'
+      }}
+    </div>
+    <div class="col-auto">
+      <q-btn
+        v-if="maxPrice"
+        class="col-auto q-mr-xs"
+        label="+0,01"
+        color="grey"
+        size="sm"
+        dense
+        @click="maxPrice = maxPrice + 0.01"
+      />
+      <q-btn
+        v-if="maxPrice"
+        class="col-auto q-mr-xs"
+        label="+0,10"
+        color="grey"
+        size="sm"
+        dense
+        @click="maxPrice = maxPrice + 0.1"
+      />
+      <q-btn
+        v-if="maxPrice"
+        class="col-auto"
+        label="+1,00"
+        color="grey"
+        size="sm"
+        dense
+        @click="maxPrice = maxPrice + 1"
+      />
+    </div>
+  </div>
+  <q-field filled class="q-mt-sm">
+    <div class="chartContainer">
+      <ChartjsLine
+        v-if="chartDataRead"
+        ref="priceChart"
+        :data="chartDataObject"
+        :options="myChartOptions"
+        class="chart"
+        @click="chartClick"
+      />
+    </div>
+  </q-field>
 </template>
 
 <script setup lang="ts">
@@ -42,13 +115,10 @@ Chart.register(
 );
 
 const props = defineProps({
-  modelValue: {
+  chargePointId: {
     type: Number,
-    required: false,
-    default: undefined,
   },
 });
-const emit = defineEmits(['update:modelValue']);
 
 const mqttStore = useMqttStore();
 const $q = useQuasar();
@@ -126,9 +196,9 @@ const priceAnnotations = computed(() => {
   const colorBlocked = 'rgba(255, 10, 13, 0.2)'; // ToDo: use theme color
   const myData = chartDataObject.value.datasets[0].data as Point[];
   let annotations: Annotation[] = [];
-  if (props.modelValue !== undefined) {
+  if (maxPrice.value !== undefined) {
     for (let i = 0; i < myData.length; i++) {
-      if (myData[i].y <= props.modelValue) {
+      if (myData[i].y <= maxPrice.value) {
         let newAnnotation: Annotation = {
           type: 'box',
           drawTime: 'beforeDatasetsDraw',
@@ -139,7 +209,7 @@ const priceAnnotations = computed(() => {
           borderColor: colorUnblocked,
           backgroundColor: colorUnblocked,
         };
-        while (i < myData.length && myData[i].y <= props.modelValue) {
+        while (i < myData.length && myData[i].y <= maxPrice.value) {
           i++;
         }
         if (i == myData.length) {
@@ -151,7 +221,7 @@ const priceAnnotations = computed(() => {
       }
     }
     for (let i = 0; i < myData.length; i++) {
-      if (myData[i].y > props.modelValue) {
+      if (myData[i].y > maxPrice.value) {
         let newAnnotation: Annotation = {
           type: 'box',
           drawTime: 'beforeDatasetsDraw',
@@ -162,7 +232,7 @@ const priceAnnotations = computed(() => {
           borderColor: colorBlocked,
           backgroundColor: colorBlocked,
         };
-        while (i < myData.length && myData[i].y > props.modelValue) {
+        while (i < myData.length && myData[i].y > maxPrice.value) {
           i++;
         }
         if (i == myData.length) {
@@ -274,9 +344,13 @@ function chartClick(event: MouseEvent) {
     const dataPoint = chartDataObject.value.datasets[0].data[
       points[0].index
     ] as Point;
-    emit('update:modelValue', Math.ceil(dataPoint.y * 100) / 100);
+    maxPrice.value = Math.ceil(dataPoint.y * 100) / 100;
   }
 }
+
+const maxPrice = mqttStore.chargePointConnectedVehicleEcoChargeMaxPrice(
+  props.chargePointId,
+);
 </script>
 
 <style scoped>
