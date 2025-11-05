@@ -173,6 +173,23 @@
           color="positive"
         />
       </div>
+
+      <div v-if="planEtActive.value">
+        <div class="text-subtitle2 q-my-sm">
+          Preisgrenze für strompreisbasiertes Laden
+        </div>
+        <ElectricityTariffChartButtons
+          :modelValue="maxPrice.value"
+          @update:modelValue="maxPrice.value = $event"
+        />
+        <q-field filled class="q-mt-sm">
+          <ElectricityTariffChart
+            :modelValue="maxPrice.value"
+            @update:modelValue="maxPrice.value = $event"
+          />
+        </q-field>
+      </div>
+
       <div class="text-subtitle2 q-mt-sm q-mr-sm">Anzahl Phasen Zielladen</div>
       <div class="row items-center justify-center q-ma-none q-pa-none no-wrap">
         <q-btn-group class="col">
@@ -219,6 +236,8 @@
 <script setup lang="ts">
 import { useMqttStore } from 'src/stores/mqtt-store';
 import { useQuasar } from 'quasar';
+import ElectricityTariffChart from './ElectricityTariffChart.vue';
+import ElectricityTariffChartButtons from './ElectricityTariffChartButtons.vue';
 import SliderStandard from './SliderStandard.vue';
 import ToggleStandard from './ToggleStandard.vue';
 import { computed } from 'vue';
@@ -259,6 +278,10 @@ const planEtActive = computed(() =>
     props.chargePointId,
     props.plan.id,
   ),
+);
+
+const maxPrice = computed(() =>
+  mqttStore.chargePointConnectedVehicleEcoChargeMaxPrice(props.chargePointId),
 );
 
 const planCurrent = computed(() =>
