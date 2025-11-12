@@ -101,7 +101,9 @@ const selectedData = computed((): GraphDataPoint[] => {
 
 const chargePointIds = computed(() => mqttStore.chargePointIds);
 const chargePointNames = computed(() => mqttStore.chargePointName);
-
+const chargePointUserDefinedColor = computed(
+  () => (id: number) => mqttStore.chargePointUserDefinedColor(id),
+);
 const gridMeterName = computed(() => {
   const gridId = mqttStore.getGridId;
   if (gridId !== undefined) {
@@ -123,7 +125,7 @@ const chargePointDatasets = computed(() =>
     label: `${chargePointNames.value(cpId)}`,
     category: 'chargepoint',
     unit: 'kW',
-    borderColor: '#4766b5',
+    borderColor: chargePointUserDefinedColor.value(cpId) || '#4766B5',
     backgroundColor: 'rgba(71, 102, 181, 0.2)',
     data: selectedData.value.map((item) => ({
       x: item.timestamp * 1000,
