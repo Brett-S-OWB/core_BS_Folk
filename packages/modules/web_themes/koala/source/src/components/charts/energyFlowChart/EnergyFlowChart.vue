@@ -246,6 +246,23 @@ const chargePointSumCharging = computed(
   () => Number(chargePointSumPower.value.value) > 0,
 );
 
+const chargePointUserDefinedColor = computed(() => (id: number) =>
+  mqttStore.chargePointUserDefinedColor(id) || undefined
+);
+
+function getChargePointColorStyle(componentId: string) {
+  // get id number from component id "charge-point-1"
+  const chargePointIdNumber = componentId.match(/^charge-point-(\d+)$/);
+  if (!chargePointIdNumber) return {};
+  const chargePointIndex = Number(chargePointIdNumber[1]) - 1;
+  const chargePointId = connectedChargePoints.value[chargePointIndex];
+  const chargePointColor = chargePointUserDefinedColor.value(chargePointId);
+  if (!chargePointColor) return {};
+  return {
+    '--chargepoint-color': chargePointColor,
+  };
+}
+
 ///////////////////////// Diagram components /////////////////////////
 
 const svgComponents = computed((): FlowComponent[] => {
@@ -585,6 +602,7 @@ const svgRectWidth = computed(
           :class="component.class.base"
           :transform="`translate(${calcColumnX(component.position.column)}, ${calcRowY(component.position.row)})`"
           @click="beginAnimation(`animate-label-${component.id}`)"
+          :style="component.class.base === 'charge-point' && getChargePointColorStyle(component.id)"
         >
           <defs>
             <clipPath v-if="component.soc" :id="`clip-soc-${component.id}`">
@@ -909,16 +927,16 @@ text .fill-dark {
 }
 
 .charge-point text {
-  fill: var(--q-primary);
+  fill: var(--chargepoint-color, var(--q-primary));
 }
 
 .charge-point circle,
 .charge-point rect {
-  stroke: var(--q-primary);
+  stroke: var(--chargepoint-color, var(--q-primary));
 }
 
 .charge-point circle {
-  fill: color-mix(in srgb, var(--q-primary) 30%, transparent);
+  fill: color-mix(in srgb, var(--chargepoint-color, var(--q-primary)) 30%, transparent);
 }
 
 .background-circle {
