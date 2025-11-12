@@ -859,6 +859,17 @@ export const useMqttStore = defineStore('mqtt', () => {
   });
 
   /**
+   * Get the charge point bookmark color defined by user identified by the charge point id
+   */
+  const chargePointUserDefinedColor = computed(() => {
+    return (chargePointId: number) => {
+      return getValue.value(
+        `openWB/chargepoint/${chargePointId}/config`,'color'
+      ) as string | undefined;
+    };
+  });
+
+  /**
    * Get the charge point fault state identified by the charge point id
    */
   const chargePointFaultState = computed(() => {
@@ -2867,6 +2878,7 @@ export const useMqttStore = defineStore('mqtt', () => {
     chargePointStateMessage,
     chargePointFaultState,
     chargePointFaultMessage,
+    chargePointUserDefinedColor,
     dcChargingEnabled,
     chargePointConnectedVehicleInfo,
     chargePointConnectedVehicleForceSocUpdate,
