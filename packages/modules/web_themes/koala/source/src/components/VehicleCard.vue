@@ -3,7 +3,13 @@
     ref="cardRef"
     class="card-width"
     :class="{ 'full-height': props.fullHeight }"
+    :style="{
+    borderColor: vehicleUserDefinedColor,
+    borderWidth: '2px',
+    borderStyle: 'solid'
+  }"
   >
+  <q-icon name="bookmark" :style="{ color: vehicleUserDefinedColor }" size="25px" class="bookmark" />
     <q-card-section class="row no-wrap">
       <div class="text-h6 text-bold ellipsis" :title="vehicle?.name">
         {{ vehicle?.name }}
@@ -89,6 +95,10 @@ const vehicleInfo = computed(() => {
   return mqttStore.vehicleInfo(props.vehicleId);
 });
 
+const vehicleUserDefinedColor = computed(() => {
+  return mqttStore.vehicleUserDefinedColor(props.vehicleId);
+});
+
 const vehicleSocType = computed(() => {
   return mqttStore.vehicleSocType(props.vehicleId);
 });
@@ -109,6 +119,12 @@ const refreshSoc = () => {
 <style lang="scss" scoped>
 .card-width {
   width: 22em;
+}
+
+.bookmark {
+  position: absolute;
+  top: 0 em;
+  left: 0.1em;
 }
 
 .q-card__section {

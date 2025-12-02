@@ -30,4 +30,5 @@ export interface FlowComponent {
   label: string[];
   soc?: number;
   icon: string;
+  style?: Record<string, string>;
 }

@@ -151,6 +151,26 @@ const chargePoint3Discharging = computed(
   () => Number(chargePoint3Power.value.value) < 0,
 );
 
+const chargePointUserDefinedColor = (id: number) =>
+  mqttStore.chargePointUserDefinedColor(id) || '#007bff';
+
+const vehicleUserDefinedColor = (id: number) =>
+  mqttStore.vehicleUserDefinedColor(id) || '#546e7a';
+
+const gridID = computed(() => mqttStore.getGridId);
+const gridUserDefinedColor = computed(() => {
+  const id = gridID.value;
+  if (id === undefined) return undefined;
+  const gridAttributes = mqttStore.gridAttributes(id);
+  return gridAttributes?.color || undefined;
+});
+const pvID = computed(() => mqttStore.getPvId);
+const pvUserDefinedColor = computed(() => {
+  const id = pvID.value;
+  if (id === undefined) return undefined;
+  const pvAttributes = mqttStore.pvAttributes(id);
+  return pvAttributes?.color || undefined;
+});
 ///////////////////////// connected vehicle /////////////////////////
 
 const translateChargeMode = (mode: string) => {
@@ -187,6 +207,24 @@ const chargePoint1ConnectedVehicleName = computed(
   () =>
     mqttStore.chargePointConnectedVehicleInfo(connectedChargePoints.value[0])
       .value?.name || '---',
+);
+
+const chargePoint1ConnectedVehicleId = computed(
+  () =>
+    mqttStore.chargePointConnectedVehicleInfo(connectedChargePoints.value[0])
+      .value?.id,
+);
+
+const chargePoint2ConnectedVehicleId = computed(
+  () =>
+    mqttStore.chargePointConnectedVehicleInfo(connectedChargePoints.value[1])
+      .value?.id,
+);
+
+const chargePoint3ConnectedVehicleId = computed(
+  () =>
+    mqttStore.chargePointConnectedVehicleInfo(connectedChargePoints.value[2])
+      .value?.id,
 );
 
 const chargePoint1ConnectedVehicleSoc = computed(() =>
@@ -294,6 +332,9 @@ const svgComponents = computed((): FlowComponent[] => {
     position: { row: 0, column: 0 },
     label: ['EVU', absoluteValueObject(gridPower.value).textValue],
     icon: 'icons/owbGrid.svg',
+    style: {
+            '--grid-color': gridUserDefinedColor.value,
+          },
   });
 
   components.push({
@@ -323,6 +364,9 @@ const svgComponents = computed((): FlowComponent[] => {
       position: { row: 1, column: 0 },
       label: ['PV', absoluteValueObject(pvPower.value).textValue],
       icon: 'icons/owbPV.svg',
+      style: {
+            '--pv-color': pvUserDefinedColor.value,
+          },
     });
   }
 
@@ -364,6 +408,11 @@ const svgComponents = computed((): FlowComponent[] => {
           absoluteValueObject(chargePoint1Power.value).textValue,
         ],
         icon: 'icons/owbChargePoint.svg',
+        style: {
+          '--chargePoint-color': chargePointUserDefinedColor(
+            connectedChargePoints.value[0],
+          ),
+        },
       });
 
       if (chargePoint1VehicleConnected.value) {
@@ -388,6 +437,11 @@ const svgComponents = computed((): FlowComponent[] => {
           ],
           soc: (chargePoint1ConnectedVehicleSoc.value.value?.soc || 0) / 100,
           icon: 'icons/owbVehicle.svg',
+          style: {
+            '--vehicle-color': vehicleUserDefinedColor(
+              chargePoint1ConnectedVehicleId.value,
+            ),
+          },
         });
       }
 
@@ -411,6 +465,11 @@ const svgComponents = computed((): FlowComponent[] => {
             absoluteValueObject(chargePoint2Power.value).textValue,
           ],
           icon: 'icons/owbChargePoint.svg',
+          style: {
+          '--chargePoint-color': chargePointUserDefinedColor(
+            connectedChargePoints.value[1],
+          ),
+        },
         });
       }
 
@@ -436,6 +495,11 @@ const svgComponents = computed((): FlowComponent[] => {
           ],
           soc: (chargePoint2ConnectedVehicleSoc.value.value?.soc || 0) / 100,
           icon: 'icons/owbVehicle.svg',
+          style: {
+            '--vehicle-color': vehicleUserDefinedColor(
+              chargePoint2ConnectedVehicleId.value,
+            ),
+          },
         });
       }
 
@@ -456,6 +520,11 @@ const svgComponents = computed((): FlowComponent[] => {
             absoluteValueObject(chargePoint3Power.value).textValue,
           ],
           icon: 'icons/owbChargePoint.svg',
+          style: {
+          '--chargePoint-color': chargePointUserDefinedColor(
+            connectedChargePoints.value[2],
+          ),
+        },
         });
       }
 
@@ -481,6 +550,11 @@ const svgComponents = computed((): FlowComponent[] => {
           ],
           soc: (chargePoint3ConnectedVehicleSoc.value.value?.soc || 0) / 100,
           icon: 'icons/owbVehicle.svg',
+          style: {
+            '--vehicle-color': vehicleUserDefinedColor(
+              chargePoint3ConnectedVehicleId.value,
+            ),
+          },
         });
       }
     } else {
@@ -622,6 +696,7 @@ const svgRectWidth = computed(
           v-for="component in svgComponents"
           :key="component.id"
           :class="component.class.base"
+          :style="component.style"
           :transform="`translate(${calcColumnX(component.position.column)}, ${calcRowY(component.position.row)})`"
           @click="beginAnimation(`animate-label-${component.id}`)"
         >
@@ -896,12 +971,12 @@ text .fill-dark {
 }
 
 .grid text {
-  fill: var(--q-negative);
+  fill: var(--grid-color, var(--q-negative));
 }
 
 .grid circle,
 .grid rect {
-  stroke: var(--q-negative);
+  stroke: var(--grid-color, var(--q-negative));
 }
 
 .grid circle {
@@ -909,12 +984,12 @@ text .fill-dark {
 }
 
 .pv text {
-  fill: var(--q-positive);
+  fill: var(--pv-color, var(--q-positive));
 }
 
 .pv circle,
 .pv rect {
-  stroke: var(--q-positive);
+  stroke: var(--pv-color, var(--q-positive));
 }
 
 .pv circle {
@@ -956,16 +1031,16 @@ text .fill-dark {
 }
 
 .charge-point text {
-  fill: var(--q-primary);
+  fill: var(--chargePoint-color, var(--q-primary));
 }
 
 .charge-point circle,
 .charge-point rect {
-  stroke: var(--q-primary);
+  stroke: var(--chargePoint-color, var(--q-primary));
 }
 
 .charge-point circle {
-  fill: color-mix(in srgb, var(--q-primary) 30%, transparent);
+  fill: color-mix(in srgb, var(--chargePoint-color, var(--q-primary)) 30%, transparent);
 }
 
 .background-circle {
@@ -973,15 +1048,15 @@ text .fill-dark {
 }
 
 .vehicle text {
-  fill: var(--q-accent);
+  fill: var(--vehicle-color, var(--q-accent));
 }
 
 .vehicle circle,
 .vehicle rect {
-  stroke: var(--q-accent);
+  stroke: var(--vehicle-color, var(--q-accent));
 }
 
 .vehicle circle:not(.soc) {
-  fill: color-mix(in srgb, var(--q-accent) 50%, transparent);
+  fill: color-mix(in srgb, var(--vehicle-color, var(--q-accent)) 50%, transparent);
 }
 </style>

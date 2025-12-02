@@ -27,6 +27,14 @@
           <q-tr
             :props="props"
             :class="props.row.id"
+            :style="{
+              ...(props.row.id === 'grid' && {
+                '--grid-color': gridUserDefinedColor,
+              }),
+              ...(props.row.id === 'pv' && {
+                '--pv-color': pvUserDefinedColor,
+              }),
+            }"
           >
             <q-td key="icon" :props="props">
               <img
@@ -203,6 +211,13 @@ const columns: QTableColumn<DailyTotalsItem>[] = [
 const componentNameVisible = computed(() => $q.screen.width >= 375);
 const currentPowerVisible = computed(() => $q.screen.width >= 500);
 const socValueVisible = computed(() => $q.screen.width >= 700);
+
+const gridID = computed(() => mqttStore.getGridId).value;
+const gridUserDefinedColor = computed(
+  () => mqttStore.gridAttributes(gridID).color,
+);
+const pvID = computed(() => mqttStore.getPvId).value;
+const pvUserDefinedColor = computed(() => mqttStore.pvAttributes(pvID).color);
 
 const batteryConfigured = computed(() => mqttStore.batteryConfigured);
 const pvConfigured = computed(() => mqttStore.getPvConfigured);
@@ -390,7 +405,7 @@ watch(rows, calculateRowHeight, { deep: true });
 }
 
 .grid {
-  background: #d5bbc0;
+  background: var(--grid-color, #d5bbc0);
 }
 .body--dark .grid {
   background: #a13a41;
@@ -404,7 +419,7 @@ watch(rows, calculateRowHeight, { deep: true });
 }
 
 .pv {
-  background: #b3ccbc;
+  background: var(--pv-color, #b3ccbc);
 }
 .body--dark .pv {
   background: #27623a;

@@ -920,6 +920,20 @@ export const useMqttStore = defineStore('mqtt', () => {
   });
 
   /**
+   * Get the charge point user defined color identified by the charge point id
+   * @param chargePointId charge point id
+   * @returns string | undefined
+   */
+  const chargePointUserDefinedColor = computed(() => {
+    return (chargePointId: number) => {
+      return getValue.value(
+        `openWB/chargepoint/${chargePointId}/config`,
+        'color',
+      ) as string | undefined;
+    };
+  });
+
+  /**
    * trigger a force SOC update for the connected vehicle
    * @param chargePointId charge point id
    * @returns void
@@ -2291,6 +2305,23 @@ export const useMqttStore = defineStore('mqtt', () => {
   });
 
   /**
+   * Get the battery user defined color identified by the charge point id
+   * @param batteryId battery ID
+   * @returns string
+   */
+  const batteryUserDefinedColor = computed(() => {
+    return (batteryId: number): string => {
+      const configurations = getWildcardValues.value(
+        `openWB/system/device/+/component/${batteryId}/config`,
+      ) as { [key: string]: BatteryConfiguration };
+      if (Object.keys(configurations).length === 0) {
+        return `Speicher ${batteryId}`;
+      }
+      return Object.values(configurations)[0].color;
+    };
+  });
+
+  /**
    * Get the SoC, for each individual battery
    * @returns number
    */
@@ -2545,6 +2576,19 @@ export const useMqttStore = defineStore('mqtt', () => {
         `openWB/vehicle/${vehicleId}/soc_module/config`,
       ) as { type: string } | null;
       return socConfig?.type;
+    };
+  });
+
+  /**
+   * Get vehicle user defined color identified by the vehicle id
+   * @param vehicleId vehicle id
+   * @returns string | undefined
+   */
+  const vehicleUserDefinedColor = computed(() => {
+    return (vehicleId: number) => {
+      return getValue.value(`openWB/vehicle/${vehicleId}/color`) as
+        | string
+        | undefined;
     };
   });
 
@@ -3289,19 +3333,26 @@ export const useMqttStore = defineStore('mqtt', () => {
   });
 
   /**
-   * Get the power meter(counter) name identified by the Grid ID
+   * Get the power meter(counter) attributes identified by the Grid ID
    * @param counterId counter ID
-   * @returns string
+   * @returns CounterConfiguration
    */
-  const getComponentName = computed(() => {
-    return (componentId: number): string => {
+  const gridAttributes = computed(() => {
+    return (componentId: number): CounterConfiguration => {
       const configurations = getWildcardValues.value(
         `openWB/system/device/+/component/${componentId}/config`,
       ) as { [key: string]: CounterConfiguration };
       if (Object.keys(configurations).length === 0) {
-        return `Zähler ${componentId}`;
+        return {
+          name: `Zähler ${componentId}`,
+          color: '#546e7a',
+          id: componentId,
+          type: 'counter',
+          info: { manufacturer: '', model: '' },
+          configuration: {},
+        };
       }
-      return Object.values(configurations)[0].name;
+      return Object.values(configurations)[0];
     };
   });
 
@@ -3453,6 +3504,72 @@ export const useMqttStore = defineStore('mqtt', () => {
   });
 
   /**
+   * Get PV id from root of component hierarchy
+   * @returns number | undefined
+   */
+  const getPvId = computed(() => {
+    const hierarchy = getValue.value(
+      'openWB/counter/get/hierarchy',
+    ) as Hierarchy[];
+    if (hierarchy && hierarchy.length > 0) {
+      const firstElement = hierarchy[0];
+      // Filtere alle Kinder mit type === 'inverter'
+      const inverterChild = firstElement.children.find(
+        (child) => child.type === 'inverter',
+      );
+      if (inverterChild) {
+        return inverterChild.id;
+      }
+    }
+    return undefined;
+  });
+
+  //   const pvAttributes2 = computed(() => {
+  //   const hierarchy = getValue.value('openWB/counter/get/hierarchy') as Hierarchy[];
+  //   console.log('PV Hierarchy:', hierarchy[0].id);
+  //   if (!hierarchy || hierarchy.length === 0) return [];
+  //   // children des Hauptzählers durchsuchen
+  //   return hierarchy[0].children
+  //     .filter(child => child.type === 'inverter')
+  //     .map(child => {
+  //       const config = getWildcardValues.value(
+  //         `openWB/system/device/${hierarchy[0].id}/component/${child.id}/config`
+  //       ) as CounterConfiguration;
+  //       console.log('PV Config:', config);
+  //       if (config && config.color && config.name)
+  //       return {
+  //         id: child.id,
+  //         name: config.name,
+  //         color: config.color,
+  //       };
+  //     })
+  // });
+
+  /**
+   * Get the power meter(counter) attributes identified by the Grid ID
+   * @param counterId counter ID
+   * @returns string
+   */
+  const pvAttributes = computed(() => {
+    return (componentId: number): CounterConfiguration => {
+      const configurations = getWildcardValues.value(
+        `openWB/system/device/+/component/${componentId}/config`,
+      ) as { [key: string]: CounterConfiguration };
+      if (Object.keys(configurations).length === 0) {
+        return {
+          name: `Zähler ${componentId}`,
+          color: '#546e7a',
+          id: componentId,
+          type: 'inverter',
+          info: { manufacturer: '', model: '' },
+          configuration: {},
+        };
+      }
+      return Object.values(configurations)[0];
+    };
+  });
+
+  /**
    * Get pv power
    * @param returnType type of return value, 'textValue', 'value', 'scaledValue', 'scaledUnit' or 'object'
    * @returns string | number | ValueObject | undefined
@@ -3572,6 +3689,7 @@ export const useMqttStore = defineStore('mqtt', () => {
     chargePointStateMessage,
     chargePointFaultState,
     chargePointFaultMessage,
+    chargePointUserDefinedColor,
     dcChargingEnabled,
     chargePointConnectedVehicleInfo,
     chargePointConnectedVehicleForceSocUpdate,
@@ -3608,6 +3726,7 @@ export const useMqttStore = defineStore('mqtt', () => {
     vehicleList,
     chargePointConnectedVehicleConfig,
     vehicleInfo,
+    vehicleUserDefinedColor,
     vehicleConnectionState,
     vehicleSocType,
     vehicleSocValue,
@@ -3659,6 +3778,7 @@ export const useMqttStore = defineStore('mqtt', () => {
     batteryConfigured,
     batteryIds,
     batteryName,
+    batteryUserDefinedColor,
     batterySoc,
     batteryPower,
     batteryDailyImported,
@@ -3670,7 +3790,7 @@ export const useMqttStore = defineStore('mqtt', () => {
     batteryMode,
     // Grid data
     getGridId,
-    getComponentName,
+    gridAttributes,
     getGridPower,
     gridDailyImported,
     gridDailyExported,
@@ -3679,6 +3799,8 @@ export const useMqttStore = defineStore('mqtt', () => {
     homeDailyYield,
     // PV data
     getPvConfigured,
+    pvAttributes,
+    getPvId,
     getPvPower,
     pvDailyExported,
     // Chart data

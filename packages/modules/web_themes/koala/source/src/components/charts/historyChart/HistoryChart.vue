@@ -102,32 +102,80 @@ const selectedData = computed((): GraphDataPoint[] => {
 const chargePointIds = computed(() => mqttStore.chargePointIds);
 const chargePointNames = computed(() => mqttStore.chargePointName);
 
+const chargePointMetadata = computed(() =>
+  chargePointIds.value.map((cpId) => ({
+    id: cpId,
+    name: chargePointNames.value(cpId),
+    color: mqttStore.chargePointUserDefinedColor(cpId),
+  })),
+);
+
+const hexColorToRgba = (hexColor: string, opacity: number = 1): string => {
+  hexColor = hexColor.replace(/^#/, '');
+  const number = parseInt(hexColor, 16);
+  const r = (number >> 16) & 255;
+  const g = (number >> 8) & 255;
+  const b = number & 255;
+  return `rgba(${r},${g},${b},${opacity})`;
+};
+
 const gridMeterName = computed(() => {
   const gridId = mqttStore.getGridId;
   if (gridId !== undefined) {
-    return mqttStore.getComponentName(gridId);
+    return mqttStore.gridAttributes(gridId).name;
   }
   return 'Zähler';
+});
+
+const gridUserDefinedColor = computed(() => {
+  const gridId = mqttStore.getGridId;
+  if (gridId !== undefined) {
+    return (
+      mqttStore.gridAttributes(gridId).color || '#a33c42'
+    );
+  }
+  return '#a33c42';
+});
+
+const pvUserDefinedColor = computed(() => {
+  const pvId = mqttStore.getPvId;
+  if (pvId !== undefined) {
+    return (
+      mqttStore.pvAttributes(pvId).color || 'red'
+    );
+  }
+  return '#a33c42';
 });
 
 //used to recreate chart instance once grid meter name is received from MQTT topic.
 const chartInstanceKey = computed(() => gridMeterName.value);
 
 const vehicles = computed(() => mqttStore.vehicleList);
+
+const vehicleAttributes = computed(() =>
+  vehicles.value.map((vehicle) => ({
+    id: vehicle.id,
+    name: vehicle.name,
+    color: mqttStore.vehicleUserDefinedColor(vehicle.id),
+  })),
+);
+
+
+
 const chartRange = computed(
   () => mqttStore.themeConfiguration?.history_chart_range || 3600,
 );
 
 const chargePointDatasets = computed(() =>
-  chargePointIds.value.map((cpId) => ({
-    label: `${chargePointNames.value(cpId)}`,
+  chargePointMetadata.value.map((cpId) => ({
+    label: `${cpId.name}`,
     category: 'chargepoint',
     unit: 'kW',
-    borderColor: '#4766b5',
-    backgroundColor: 'rgba(71, 102, 181, 0.2)',
+    borderColor: cpId.color || '#4766b5',
+    backgroundColor: hexColorToRgba(cpId.color || '#4766b5', 0.2),
     data: selectedData.value.map((item) => ({
       x: item.timestamp * 1000,
-      y: item[`cp${cpId}-power`] || 0,
+      y: item[`cp${cpId.id}-power`] || 0,
     })),
     borderWidth: 2,
     pointRadius: 0,
@@ -139,7 +187,7 @@ const chargePointDatasets = computed(() =>
 );
 
 const vehicleDatasets = computed(() =>
-  vehicles.value
+  vehicleAttributes.value
     .map((vehicle) => {
       const socKey = `ev${vehicle.id}-soc` as keyof GraphDataPoint;
       if (selectedData.value.some((item) => socKey in item)) {
@@ -147,7 +195,7 @@ const vehicleDatasets = computed(() =>
           label: `${vehicle.name} SoC`,
           category: 'vehicle',
           unit: '%',
-          borderColor: '#9F8AFF',
+          borderColor: vehicle.color || '#9F8AFF',
           borderWidth: 2,
           borderDash: [10, 5],
           pointRadius: 0,
@@ -203,8 +251,11 @@ const lineChartData = computed(() => {
         label: gridMeterName.value,
         category: 'component',
         unit: 'kW',
-        borderColor: '#a33c42',
-        backgroundColor: 'rgba(239,182,188, 0.2)',
+        borderColor: gridUserDefinedColor.value || '#a33c42',
+        backgroundColor: hexColorToRgba(
+          gridUserDefinedColor.value || '#a33c42',
+          0.2,
+        ),
         data: selectedData.value.map((item) => ({
           x: item.timestamp * 1000,
           y: item.grid,
@@ -237,7 +288,7 @@ const lineChartData = computed(() => {
         label: 'PV ges.',
         category: 'component',
         unit: 'kW',
-        borderColor: 'green',
+        borderColor: pvUserDefinedColor.value || 'green',
         backgroundColor: 'rgba(144, 238, 144, 0.2)',
         data: selectedData.value.map((item) => ({
           x: item.timestamp * 1000,

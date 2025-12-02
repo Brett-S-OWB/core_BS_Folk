@@ -6,7 +6,19 @@
       'battery-sum': props.batteryId === -1,
       'full-height': props.fullHeight,
     }"
+    :style="{
+      borderColor: batteryUserDefinedColor,
+      borderWidth: '2px',
+      borderStyle: 'solid',
+    }"
   >
+    <q-icon
+      v-if="batteryUserDefinedColor !== '#007bff'"
+      name="bookmark"
+      :style="{ color: batteryUserDefinedColor }"
+      size="25px"
+      class="bookmark"
+    />
     <q-card-section class="row no-wrap items-center justify-between">
       <div class="text-h6 text-bold ellipsis" :title="cardTitle">
         {{ cardTitle }}
@@ -151,11 +163,29 @@ const dailyExportedEnergy = computed(() => {
     '---'
   );
 });
+
+const batteryUserDefinedColor = computed(() => {
+  if (isOverview.value) {
+    return null;
+  }
+  return mqttStore.batteryUserDefinedColor(props.batteryId);
+});
 </script>
 
 <style scoped lang="scss">
 .card-width {
   width: 22em;
+}
+
+.bookmark {
+  position: absolute;
+  top: 0 em;
+  left: 0.1em;
+}
+
+.title {
+  position: relative;
+  z-index: 2;
 }
 
 .q-card__section {
