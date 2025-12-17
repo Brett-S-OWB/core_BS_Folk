@@ -370,21 +370,5 @@ watch(
   transform: rotate(180deg);
 }
 /* Dark mode overrides */
-.body--dark .grid {
-  background: var(--q-dark-daily-totals-grid-fill);
-  border: 0.125rem solid var(--q-dark-daily-totals-grid-stroke);
-}
-.body--dark .battery {
-  background: var(--q-dark-daily-totals-battery-fill);
-  border: 0.125rem solid var(--q-dark-daily-totals-battery-stroke);
-}
-.body--dark .pv {
-  background: var(--q-dark-daily-totals-pv-fill);
-}
-.body--dark .house {
-  background: var(--q-dark-daily-totals-house-fill);
-}
-.body--dark .chargepoint {
-  background: var(--q-dark-daily-totals-chargepoint-fill);
-}
+
 </style>

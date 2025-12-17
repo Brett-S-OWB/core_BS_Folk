@@ -242,26 +242,19 @@ $charge-point-fill: #5c93d14D;
   }
 }
 // Dark Theme Base Colors
-$dark-page: #000000; // This overrides Quasar's default dark page color
+$dark-page: #373736; // This overrides Quasar's default dark page color - outer background
 $dark-primary: #3874db;
-$dark-secondary: #28293d;
+$dark-secondary: #2e2f3c; //cards - tabs background tables
 $dark-accent: #546e7a;
 $dark-positive: #3e8f5e;
 $dark-negative: #c54d57;
 $dark-info: #4b89aa;
 $dark-warning: #d98e44;
-$dark-background-1: #030627;
-$dark-background-2: #010322;
-$dark-list: rgb(40, 42, 62);
+$dark-background-1: #3D3D3C; // app background
+$dark-background-2: #3D3D3C; // app background 2
+$dark-list: rgb(63, 64, 77);
 $dark-carousel: #8b8f9f;
 $dark-tab-icon: #d7d9e0;
-$dark-daily-totals-grid-fill: #a13a41;
-$dark-daily-totals-grid-stroke: #da959a;
-$dark-daily-totals-battery-fill: #b97a1f;
-$dark-daily-totals-battery-stroke: #e7c08a;
-$dark-daily-totals-pv-fill: #27623a;
-$dark-daily-totals-house-fill: #6e6e6e;
-$dark-daily-totals-chargepoint-fill: #254a8c;
 
 // Dark theme
 .body--dark {
@@ -292,13 +285,7 @@ $dark-daily-totals-chargepoint-fill: #254a8c;
   --q-battery-fill: #{$battery-fill};
   --q-charge-point-stroke: #{$charge-point-stroke};
   --q-charge-point-fill: #{$charge-point-fill};
-  --q-dark-daily-totals-grid-fill: #{$dark-daily-totals-grid-fill};
-  --q-dark-daily-totals-grid-stroke: #{$dark-daily-totals-grid-stroke};
-  --q-dark-daily-totals-battery-fill: #{$dark-daily-totals-battery-fill};
-  --q-dark-daily-totals-battery-stroke: #{$dark-daily-totals-battery-stroke};
-  --q-dark-daily-totals-pv-fill: #{$dark-daily-totals-pv-fill};
-  --q-dark-daily-totals-house-fill: #{$dark-daily-totals-house-fill};
-  --q-dark-daily-totals-chargepoint-fill: #{$dark-daily-totals-chargepoint-fill};
+
 
   // Main background
   background-color: $dark-page;
