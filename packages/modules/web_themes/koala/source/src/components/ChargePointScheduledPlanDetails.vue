@@ -219,7 +219,16 @@
           color="positive"
         />
       </div>
-      <div class="row q-mt-md">
+      <div v-if="!isPermanentPlan" class="row q-mt-md">
+        <q-btn
+          size="sm"
+          class="col"
+          color="positive"
+          @click="persistScheduledChargingPlan()"
+          >Plan persistent speichern</q-btn
+        >
+      </div>
+      <div v-if="isPermanentPlan" class="row q-mt-md">
         <q-btn
           size="sm"
           class="col"
@@ -229,7 +238,10 @@
         >
       </div>
     </q-card-section>
+    {{ PermanentChargingPlans }}
+    {{ isPermanentPlan }}
   </q-card>
+
 </template>
 
 <script setup lang="ts">
@@ -237,7 +249,7 @@ import { useMqttStore } from 'src/stores/mqtt-store';
 import { useQuasar } from 'quasar';
 import SliderStandard from './SliderStandard.vue';
 import ToggleStandard from './ToggleStandard.vue';
-import { computed } from 'vue';
+import { computed, onMounted } from 'vue';
 import { type ScheduledChargingPlan } from '../stores/mqtt-store-model';
 
 const props = defineProps<{
@@ -433,6 +445,37 @@ const removeScheduledChargingPlan = (planId) => {
   );
   emit('close');
 };
+
+const PermanentChargingPlans = computed(() =>
+  mqttStore.vehicleScheduledChargingPlansPermanentIds(props.chargePointId),
+);
+
+const isPermanentPlan = computed(() =>{
+  return PermanentChargingPlans.value.some((id) => id === props.plan.id)
+});
+
+
+const persistScheduledChargingPlan = () => {
+  if (isPermanentPlan.value) {
+    $q.notify({
+      type: 'info',
+      message: 'Der Plan ist bereits persistent gespeichert.',
+    });
+    return;
+  }
+  mqttStore.persistScheduledChargingPlan(
+    props.chargePointId,
+    props.plan,
+  );
+  $q.notify({
+    type: 'positive',
+    message: 'Der Plan wurde persistent gespeichert.',
+  });
+};
+
+onMounted(() => {
+  console.log('PermanentChargingPlans', PermanentChargingPlans.value);
+});
 </script>
 
 <style scoped>

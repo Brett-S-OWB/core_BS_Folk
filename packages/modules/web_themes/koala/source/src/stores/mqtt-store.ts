@@ -2649,6 +2649,46 @@ export const useMqttStore = defineStore('mqtt', () => {
     };
   });
 
+  /**
+   * Get scheduled permanent charging plan/s ids identified by the charge point id
+   * @param chargePointId charge point id
+   * @returns ScheduledChargingPlan[] | undefined
+   */
+  const vehicleScheduledChargingPlansPermanentIds = computed(() => {
+    return (chargePointId: number) => {
+      const templateId =
+        chargePointConnectedVehicleChargeTemplate(chargePointId).value?.id;
+      //debugger;
+      const plans = getValue.value(
+        `openWB/vehicle/template/charge_template/${templateId}`,
+        'chargemode.scheduled_charging.plans',
+      ) as ScheduledChargingPlan[] | undefined;
+      return Array.isArray(plans) ? plans.map((plan) => plan.id) : [];
+    };
+  });
+
+  function persistScheduledChargingPlan(
+    chargePointId: number,
+    plan: ScheduledChargingPlan,
+  ) {
+    debugger;
+    const templateId =
+      chargePointConnectedVehicleChargeTemplate(chargePointId).value?.id;
+
+    if (templateId === undefined) {
+      console.warn('No templateId found for chargePoint', chargePointId);
+      return;
+    }
+
+    const planID = plan.id;
+
+    doPublish(
+      `openWB/set/vehicle/template/charge_template/${templateId}/chargemode/scheduled_charging/plans/${planID}`,
+      plan,
+      false,
+    );
+  }
+
   function addScheduledChargingPlanForChargePoint(chargePointId: number) {
     const templateId =
       chargePointConnectedVehicleChargeTemplate(chargePointId).value?.id;
@@ -3288,7 +3328,6 @@ export const useMqttStore = defineStore('mqtt', () => {
     return undefined;
   });
 
-
   /**
    * Get all counter ids from component hierarchy
    * @returns number[]
@@ -3373,7 +3412,7 @@ export const useMqttStore = defineStore('mqtt', () => {
    * @returns string | number | ValueObject | undefined
    */
   const counterDailyImported = computed(() => {
-    return (returnType: string = 'textValue', counterId?: number ) => {
+    return (returnType: string = 'textValue', counterId?: number) => {
       const id = counterId ?? getGridId.value;
       if (id === undefined) {
         return '---';
@@ -3654,6 +3693,8 @@ export const useMqttStore = defineStore('mqtt', () => {
     addScheduledChargingPlanForChargePoint,
     removeScheduledChargingPlanForChargePoint,
     vehicleScheduledChargingPlans,
+    vehicleScheduledChargingPlansPermanentIds,
+    persistScheduledChargingPlan,
     vehicleScheduledChargingPlanActive,
     vehicleScheduledChargingPlanEtActive,
     vehicleScheduledChargingPlanCurrent,
