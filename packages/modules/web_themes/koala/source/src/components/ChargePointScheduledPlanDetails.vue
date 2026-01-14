@@ -3,7 +3,7 @@
     <q-card-section>
       <div class="row no-wrap">
         <div class="text-h6 ellipsis" :title="planName.value">
-          {{ planName.value }}
+          {{ planName.value }}. ID: {{ plan.id }}
         </div>
         <q-space />
         <q-btn icon="close" flat round dense v-close-popup />
