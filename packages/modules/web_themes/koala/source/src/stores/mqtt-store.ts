@@ -61,10 +61,6 @@ export const useMqttStore = defineStore('mqtt', () => {
       mqttClient = mqtt.connect(connectUrl, options);
       mqttClient.on('connect', () => {
         console.debug('connected to broker');
-
-        mqttClient.subscribe('openWB/set/vehicle/template/#', (err) => {
-          console.log('Frontend subscribed to set template', err);
-        });
       });
       mqttClient.on('error', (error) => {
         console.error('Client error', error);
@@ -336,12 +332,6 @@ export const useMqttStore = defineStore('mqtt', () => {
         console.error('Publish error', error);
       }
     });
-    console.log(
-      'MQTT connected:',
-      mqttClient.connected,
-      'reconnecting:',
-      mqttClient.reconnecting,
-    );
   }
 
   /**
