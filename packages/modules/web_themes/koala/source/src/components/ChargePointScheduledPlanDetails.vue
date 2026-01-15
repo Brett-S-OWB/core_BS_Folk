@@ -454,18 +454,12 @@ const isPermanentPlan = computed(() =>{
   return PermanentChargingPlans.value.some((id) => id === props.plan.id)
 });
 
-
-const persistScheduledChargingPlan = () => {
-  if (isPermanentPlan.value) {
-    $q.notify({
-      type: 'info',
-      message: 'Der Plan ist bereits persistent gespeichert.',
-    });
-    return;
-  }
+const persistScheduledChargingPlan = async () => {
+  const currentPlanObjekt = mqttStore.vehicleScheduledChargingPlans(props.chargePointId)
+  .find(p => p.id === props.plan.id);
   mqttStore.persistScheduledChargingPlan(
     props.chargePointId,
-    props.plan,
+    currentPlanObjekt,
   );
   $q.notify({
     type: 'positive',

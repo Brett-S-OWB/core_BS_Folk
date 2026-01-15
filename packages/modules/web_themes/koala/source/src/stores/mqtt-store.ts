@@ -2,7 +2,6 @@ import { defineStore } from 'pinia';
 import { ref, computed, ComputedRef } from 'vue';
 import mqtt, { IClientPublishOptions } from 'mqtt';
 import { QoS } from 'mqtt-packet';
-import { toRaw } from 'vue';
 
 // import all type definitions from the mqtt-store-model
 import type {
@@ -2669,7 +2668,6 @@ export const useMqttStore = defineStore('mqtt', () => {
     return (chargePointId: number) => {
       const templateId =
         chargePointConnectedVehicleChargeTemplate(chargePointId).value?.id;
-      //debugger;
       const plans = getValue.value(
         `openWB/vehicle/template/charge_template/${templateId}`,
         'chargemode.scheduled_charging.plans',
@@ -2678,29 +2676,27 @@ export const useMqttStore = defineStore('mqtt', () => {
     };
   });
 
-  function persistScheduledChargingPlan(
+  /**
+   * Publish scheduled charging plan to vehicle template thereby making it permanent
+   * @param chargePointId charge point id
+   * @param plan scheduled charging plan
+   * @returns void
+   */
+  const persistScheduledChargingPlan =(
     chargePointId: number,
     plan: ScheduledChargingPlan,
-  ) {
-    //debugger;
+  ): void => {
     const templateId =
       chargePointConnectedVehicleChargeTemplate(chargePointId).value?.id;
-
     if (templateId === undefined) {
       console.warn('No templateId found for chargePoint', chargePointId);
       return;
     }
-
-    const payload = structuredClone(toRaw(plan));
-
-    //const planID = plan.id;
-
     doPublish(
-      `openWB/set/vehicle/template/charge_template/${templateId}/chargemode/scheduled_charging/plans/${payload.id}`,
-      payload,
+      `openWB/set/vehicle/template/charge_template/${templateId}/chargemode/scheduled_charging/plans/${plan.id}`,
+      plan,
       false,
     );
-    debugger;
   }
 
   function addScheduledChargingPlanForChargePoint(chargePointId: number) {
