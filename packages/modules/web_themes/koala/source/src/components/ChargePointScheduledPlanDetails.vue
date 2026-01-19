@@ -227,6 +227,15 @@
           @click="persistScheduledChargingPlan()"
           >Plan persistent speichern</q-btn
         >
+        <q-icon
+          name="delete_forever"
+          class="q-ml-sm cursor-pointer"
+          color="negative"
+          size="md"
+          @click="removeScheduledChargingPlan(plan.id)"
+        >
+          <q-tooltip>Plan löschen</q-tooltip>
+        </q-icon>
       </div>
       <div v-if="isPermanentPlan" class="row q-mt-md">
         <q-btn
