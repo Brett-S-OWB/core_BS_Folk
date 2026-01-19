@@ -241,7 +241,6 @@
     {{ PermanentChargingPlans }}
     {{ isPermanentPlan }}
   </q-card>
-
 </template>
 
 <script setup lang="ts">
@@ -450,13 +449,14 @@ const PermanentChargingPlans = computed(() =>
   mqttStore.vehicleScheduledChargingPlansPermanentIds(props.chargePointId),
 );
 
-const isPermanentPlan = computed(() =>{
-  return PermanentChargingPlans.value.some((id) => id === props.plan.id)
+const isPermanentPlan = computed(() => {
+  return PermanentChargingPlans.value.some((id) => id === props.plan.id);
 });
 
 const persistScheduledChargingPlan = async () => {
-  const currentPlanObjekt = mqttStore.vehicleScheduledChargingPlans(props.chargePointId)
-  .find(p => p.id === props.plan.id);
+  const currentPlanObjekt = mqttStore
+    .vehicleScheduledChargingPlans(props.chargePointId)
+    .find((p) => p.id === props.plan.id);
   mqttStore.persistScheduledChargingPlan(
     props.chargePointId,
     currentPlanObjekt,
@@ -465,6 +465,14 @@ const persistScheduledChargingPlan = async () => {
     type: 'positive',
     message: 'Der Plan wurde persistent gespeichert.',
   });
+  setTimeout(() => {
+    mqttStore.updateTopic(
+      `openWB/chargepoint/${props.chargePointId}/set/charge_template`,
+      'scheduled_charging',
+      'chargemode.selected',
+      true,
+    );
+  }, 200);
 };
 
 onMounted(() => {
