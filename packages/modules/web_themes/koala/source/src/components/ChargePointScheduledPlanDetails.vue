@@ -247,8 +247,6 @@
         >
       </div>
     </q-card-section>
-    {{ PermanentChargingPlans }}
-    {{ isPermanentPlan }}
   </q-card>
 </template>
 
@@ -257,7 +255,7 @@ import { useMqttStore } from 'src/stores/mqtt-store';
 import { useQuasar } from 'quasar';
 import SliderStandard from './SliderStandard.vue';
 import ToggleStandard from './ToggleStandard.vue';
-import { computed, onMounted } from 'vue';
+import { computed } from 'vue';
 import { type ScheduledChargingPlan } from '../stores/mqtt-store-model';
 
 const props = defineProps<{
@@ -454,15 +452,17 @@ const removeScheduledChargingPlan = (planId) => {
   emit('close');
 };
 
-const PermanentChargingPlans = computed(() =>
-  mqttStore.vehicleScheduledChargingPlansPermanentIds(props.chargePointId),
+const PermanentScheduledChargingPlansIds = computed(() =>
+  mqttStore
+    .vehicleScheduledChargingPlansPermanent(props.chargePointId)
+    .map((plan) => plan.id),
 );
 
 const isPermanentPlan = computed(() => {
-  return PermanentChargingPlans.value.some((id) => id === props.plan.id);
+  return PermanentScheduledChargingPlansIds.value.some((id) => id === props.plan.id);
 });
 
-const persistScheduledChargingPlan = async () => {
+const persistScheduledChargingPlan = () => {
   const currentPlanObjekt = mqttStore
     .vehicleScheduledChargingPlans(props.chargePointId)
     .find((p) => p.id === props.plan.id);
@@ -481,12 +481,8 @@ const persistScheduledChargingPlan = async () => {
       'chargemode.selected',
       true,
     );
-  }, 200);
+  }, 300);
 };
-
-onMounted(() => {
-  console.log('PermanentChargingPlans', PermanentChargingPlans.value);
-});
 </script>
 
 <style scoped>

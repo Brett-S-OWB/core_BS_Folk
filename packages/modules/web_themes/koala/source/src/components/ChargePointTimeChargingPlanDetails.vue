@@ -167,7 +167,25 @@
           <div class="text-body2">kWh</div>
         </template>
       </q-input>
-      <div class="row q-mt-lg">
+      <div v-if="!isPermanentPlan" class="row q-mt-md">
+        <q-btn
+          size="sm"
+          class="col"
+          color="positive"
+          @click="persistTimeChargingPlan()"
+          >Plan persistent speichern</q-btn
+        >
+        <q-icon
+          name="delete_forever"
+          class="q-ml-sm cursor-pointer"
+          color="negative"
+          size="md"
+          @click="removeTimeChargingPlan(plan.id)"
+        >
+          <q-tooltip>Plan löschen</q-tooltip>
+        </q-icon>
+      </div>
+      <div v-if="isPermanentPlan" class="row q-mt-lg">
         <q-btn
           size="sm"
           class="col"
@@ -182,6 +200,7 @@
 
 <script setup lang="ts">
 import { useMqttStore } from 'src/stores/mqtt-store';
+import { useQuasar } from 'quasar';
 import SliderStandard from './SliderStandard.vue';
 import ToggleStandard from './ToggleStandard.vue';
 import { type TimeChargingPlan } from '../stores/mqtt-store-model';
@@ -191,6 +210,8 @@ const props = defineProps<{
   chargePointId: number;
   plan: TimeChargingPlan;
 }>();
+
+const $q = useQuasar();
 
 const mqttStore = useMqttStore();
 const emit = defineEmits(['close']);
@@ -290,6 +311,33 @@ const planDcPower = computed(() =>
 const removeTimeChargingPlan = (planId: number) => {
   mqttStore.removeTimeChargingPlanForChargePoint(props.chargePointId, planId);
   emit('close');
+};
+
+const PermanentTimeChargingPlanIds = computed(() =>
+  mqttStore.vehicleTimeChargingPlansPermanent(props.chargePointId).map((plan) => plan.id),
+);
+
+const isPermanentPlan = computed(() => {
+  return PermanentTimeChargingPlanIds.value.some((id) => id === props.plan.id);
+});
+
+const persistTimeChargingPlan = async () => {
+  const currentPlanObjekt = mqttStore
+    .vehicleTimeChargingPlans(props.chargePointId)
+    .find((p) => p.id === props.plan.id);
+  mqttStore.persistTimeChargingPlan(props.chargePointId, currentPlanObjekt);
+  $q.notify({
+    type: 'positive',
+    message: 'Der Plan wurde persistent gespeichert.',
+  });
+  setTimeout(() => {
+    mqttStore.updateTopic(
+      `openWB/chargepoint/${props.chargePointId}/set/charge_template`,
+      'scheduled_charging',
+      'chargemode.selected',
+      true,
+    );
+  }, 300);
 };
 </script>
 
