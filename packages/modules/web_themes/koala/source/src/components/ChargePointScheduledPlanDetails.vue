@@ -465,7 +465,7 @@ const chargeTemplateId = computed(
 
 <style scoped>
 .card-width {
-  width: 26em;
+  max-width: 26em;
 }
 .q-btn-group .q-btn {
   min-width: 100px !important;

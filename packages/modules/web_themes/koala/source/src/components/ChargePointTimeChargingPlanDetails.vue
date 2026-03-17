@@ -335,7 +335,7 @@ const removeTimeChargingPlan = (planId: number) => {
 
 <style scoped>
 .card-width {
-  width: 26em;
+  max-width: 26em;
 }
 
 .q-btn-group .q-btn {
