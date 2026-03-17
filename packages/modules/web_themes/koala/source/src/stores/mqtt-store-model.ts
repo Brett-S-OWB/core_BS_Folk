@@ -224,3 +224,8 @@ export interface CounterConfiguration {
   id: number;
   configuration: object;
 }
+
+export interface BatteryChargePriorityRange {
+  min: number;
+  max: number;
+}

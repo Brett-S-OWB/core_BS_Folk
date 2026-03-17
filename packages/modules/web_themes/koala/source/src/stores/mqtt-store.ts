@@ -27,6 +27,7 @@ import type {
   VehicleChargeTarget,
   CalculatedSocState,
   SystemCommandEvent,
+  BatteryChargePriorityRange,
 } from './mqtt-store-model';
 
 export const useMqttStore = defineStore('mqtt', () => {
@@ -1920,6 +1921,39 @@ export const useMqttStore = defineStore('mqtt', () => {
       },
     });
   };
+
+  /**
+   * Get or set the battery charge priority SoC range for PV charging
+   * @returns BatteryChargePriorityRange
+   */
+  const batteryChargePriorityRange = computed<BatteryChargePriorityRange>({
+    get() {
+      const minSoc = getValue.value(
+        'openWB/general/chargemode_config/pv_charging/min_bat_soc',
+      ) as number | undefined;
+      const maxSoc = getValue.value(
+        'openWB/general/chargemode_config/pv_charging/max_bat_soc',
+      ) as number | undefined;
+      return {
+        min: minSoc ?? 0,
+        max: maxSoc ?? 100,
+      };
+    },
+    set(newRange: BatteryChargePriorityRange) {
+      updateTopic(
+        'openWB/general/chargemode_config/pv_charging/min_bat_soc',
+        newRange.min,
+        undefined,
+        true,
+      );
+      updateTopic(
+        'openWB/general/chargemode_config/pv_charging/max_bat_soc',
+        newRange.max,
+        undefined,
+        true,
+      );
+    },
+  });
 
   /**
    * Get or set the charge point connected vehicle eco energy limit identified by the charge point id
@@ -4055,6 +4089,7 @@ export const useMqttStore = defineStore('mqtt', () => {
     batteryDailyImportedTotal,
     batteryDailyExportedTotal,
     batteryTotalPower,
+    batteryChargePriorityRange,
     batteryMode,
     // Grid data
     getGridId,
