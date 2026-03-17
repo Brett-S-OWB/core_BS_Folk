@@ -6,7 +6,6 @@
   >
     <q-card class="card-width">
       <q-card-section>
-        <!-- {{ batteryRange }} -->
         <div class="row no-wrap">
           <div>
             <div class="text-h6 q-pr-sm">Speicher-Beachtung:</div>
@@ -25,20 +24,18 @@
       </q-card-section>
       <q-separator />
       <q-card-section>
-        <div class="text-subtitle2">Überschuss primär für:</div>
+        <div class="text-subtitle2">Ladepriorität:</div>
         <BatteryModeButtons />
-      </q-card-section>
-      <q-card-section v-if="batteryMode === 'min_soc_bat_mode'">
-        <div class="text-subtitle2">SoC-Bereich des Speichers % :</div>
-        <q-range
-          v-model="batteryRange"
-          :min="0"
-          :max="100"
-          :step="1"
-          :markers="10"
-          label
-          label-always
-        />
+        <div v-if="batteryMode === 'min_soc_bat_mode'" class="q-pt-md">
+          <RangeSliderStandard
+            v-model="batteryRange"
+            title="SoC-Grenzen des Speichers % :"
+            :min="0"
+            :max="100"
+            :step="1"
+            :markers="10"
+          />
+        </div>
       </q-card-section>
     </q-card>
   </q-dialog>
@@ -48,6 +45,7 @@
 import { computed, ref } from 'vue';
 import { Screen } from 'quasar';
 import BatteryModeButtons from './BatteryModeButtons.vue';
+import RangeSliderStandard from './RangeSliderStandard.vue';
 import { useMqttStore } from 'src/stores/mqtt-store';
 
 const isOpen = ref(false);
@@ -82,20 +80,10 @@ const batteryRange = computed({
 </script>
 <style lang="scss" scoped>
 .card-width {
-  max-width: 26em;
+  max-width: 600px;
 }
 .close-btn {
   height: 2.5em;
   width: 2.5em;
-}
-:deep(.q-slider__pin) {
-  top: 100%;
-  transform: scaleY(-1);
-}
-:deep(.q-slider__text-container) {
-  transform: scaleY(-1) !important;
-}
-:deep(.q-range) {
-  padding-bottom: 24px;
 }
 </style>
