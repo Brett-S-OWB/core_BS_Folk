@@ -30,32 +30,21 @@ interface RangeValue {
   max: number;
 }
 
-const props = defineProps({
-  title: {
-    type: String,
-    default: ''
-  },
-  modelValue: {
-    type: Object as () => RangeValue,
-    required: true
-  },
-  min: {
-    type: Number,
-    required: true
-  },
-  max: {
-    type: Number,
-    required: true
-  },
-  step: {
-    type: Number,
-    default: 1
-  },
-  markers: {
-    type: [Boolean, Number],
-    default: false
-  },
-})
+const props = withDefaults(
+  defineProps<{
+    title?: string
+    modelValue: RangeValue
+    min: number
+    max: number
+    step?: number
+    markers?: boolean | number
+  }>(),
+  {
+    title: '',
+    step: 1,
+    markers: false,
+  }
+)
 
 const emit = defineEmits<{
   'update:model-value': [value: RangeValue];

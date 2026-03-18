@@ -36,60 +36,35 @@ defineOptions({
   name: 'SliderStandard',
 });
 
-const props = defineProps({
-  title: {
-    type: String,
-    default: 'title',
-  },
-  modelValue: {
-    type: Number,
-    required: true,
-  },
-  max: {
-    type: Number,
-    required: true,
-  },
-  min: {
-    type: Number,
-    required: true,
-  },
-  step: {
-    type: Number,
-    default: 1,
-  },
-  unit: {
-    type: String,
-    default: '',
-  },
-  offValueRight: {
-    type: Number,
-    default: 105,
-  },
-  offValueLeft: {
-    type: Number,
-    default: -1,
-  },
-  discreteValues: {
-    type: Array as () => number[] | undefined,
-    default: undefined,
-  },
-  color: {
-    type: String,
-    default: 'primary',
-  },
-  trackSize: {
-    type: String,
-    default: '0.5em',
-  },
-  thumbSize: {
-    type: String,
-    default: '1.5em',
-  },
-  thumbColor: {
-    type: String,
-    default: 'primary',
-  },
-});
+const props = withDefaults(
+  defineProps<{
+    title?: string
+    modelValue: number
+    max: number
+    min: number
+    step?: number
+    unit?: string
+    offValueRight?: number
+    offValueLeft?: number
+    discreteValues?: number[]
+    color?: string
+    trackSize?: string
+    thumbSize?: string
+    thumbColor?: string
+  }>(),
+  {
+    title: 'title',
+    step: 1,
+    unit: '',
+    offValueRight: 105,
+    offValueLeft: -1,
+    discreteValues: undefined,
+    color: 'primary',
+    trackSize: '0.5em',
+    thumbSize: '1.5em',
+    thumbColor: 'primary',
+  }
+)
 
 const emit = defineEmits<{
   'update:model-value': [value: number];
