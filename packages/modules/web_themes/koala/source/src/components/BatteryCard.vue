@@ -37,11 +37,10 @@
         class="row q-mt-md justify-between text-subtitle2"
       >
         <div>Ladepriorität:</div>
-        <div class="q-ml-sm row items-center">
+        <div class="row items-center">
           <q-icon
             :name="batteryMode.icon"
             size="sm"
-            class="q-mr-sm"
             color="primary"
           />
           <div>
