@@ -1,11 +1,9 @@
 <template>
   <div>
-    <div>
-      <div class="text-subtitle2">{{ props.title }}</div>
-    </div>
+    <div class="text-subtitle2">{{ title }}</div>
     <div class="row items-center justify-between q-ml-sm">
       <q-slider
-        v-model="value"
+        v-model="sliderValue"
         :min="props.discreteValues ? 0 : props.min"
         :max="
           props.discreteValues ? props.discreteValues.length - 1 : props.max
@@ -19,9 +17,11 @@
         @touchstart.stop
         @touchmove.stop
         @touchend.stop
-        @change="updateValue"
       />
-      <div class="q-ml-sm no-wrap" :class="['col-2', 'text-right', myClass]">
+      <div
+        class="q-ml-sm no-wrap"
+        :class="['col-2', 'text-right', pendingClass]"
+      >
         {{ displayValue }} {{ displayUnit }}
       </div>
     </div>
@@ -29,7 +29,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch, onBeforeUnmount } from 'vue';
+import { computed } from 'vue';
+import { useDelayModel } from '../composables/useDelayModel';
 
 defineOptions({
   name: 'SliderStandard',
@@ -42,6 +43,7 @@ const props = defineProps({
   },
   modelValue: {
     type: Number,
+    required: true,
   },
   max: {
     type: Number,
@@ -68,7 +70,7 @@ const props = defineProps({
     default: -1,
   },
   discreteValues: {
-    type: Array as () => number[],
+    type: Array as () => number[] | undefined,
     default: undefined,
   },
   color: {
@@ -93,102 +95,55 @@ const emit = defineEmits<{
   'update:model-value': [value: number];
 }>();
 
-const tempValue = ref<number | undefined>(props.modelValue);
-const updateTimeout = ref<NodeJS.Timeout | null>(null);
+const { value, updatePending } = useDelayModel<number>(props, emit);
 
-const updatePending = computed(() => {
-  return tempValue.value !== props.modelValue;
-});
-const value = computed({
+const sliderValue = computed({
   get: () => {
     if (props.discreteValues) {
-      const index = props.discreteValues.indexOf(
-        tempValue.value ?? props.discreteValues[0],
-      );
+      const index = props.discreteValues.indexOf(value.value);
       return index >= 0 ? index : 0;
     }
-    return tempValue.value;
+    return value.value;
   },
   set: (newValue: number) => {
-    if (updateTimeout.value) {
-      clearTimeout(updateTimeout.value);
-    }
     if (props.discreteValues) {
-      tempValue.value = props.discreteValues[newValue];
+      value.value = props.discreteValues[newValue];
     } else {
-      tempValue.value = newValue;
+      value.value = newValue;
     }
   },
 });
 
-const updateValue = (newValue: number) => {
-  if (updatePending.value) {
-    if (updateTimeout.value) {
-      clearTimeout(updateTimeout.value);
-    }
-    updateTimeout.value = setTimeout(() => {
-      emit(
-        'update:model-value',
-        props.discreteValues ? props.discreteValues[newValue] : newValue,
-      );
-    }, 2000);
-  }
-};
+const currentValue = computed(() => {
+  return props.discreteValues && sliderValue.value !== undefined
+    ? (props.discreteValues[sliderValue.value] ?? props.discreteValues[0])
+    : value.value;
+});
 
 const displayValue = computed(() => {
-  const currentValue =
-    props.discreteValues && value.value !== undefined
-      ? props.discreteValues[value.value]
-      : value.value;
-
   if (
-    currentValue === props.offValueLeft ||
-    currentValue === props.offValueRight
+    currentValue.value === props.offValueLeft ||
+    currentValue.value === props.offValueRight
   ) {
     return 'Aus';
   }
-  return currentValue;
+  return currentValue.value;
 });
 
 const displayUnit = computed(() => {
-  const currentValue =
-    props.discreteValues && value.value !== undefined
-      ? props.discreteValues[value.value]
-      : value.value;
-
   if (
-    currentValue === props.offValueLeft ||
-    currentValue === props.offValueRight
+    currentValue.value === props.offValueLeft ||
+    currentValue.value === props.offValueRight
   ) {
     return '';
   }
   return props.unit;
 });
 
-watch(
-  () => props.modelValue,
-  (newValue) => {
-    tempValue.value = newValue;
-  },
-);
-
-onBeforeUnmount(() => {
-  if (updateTimeout.value) {
-    clearTimeout(updateTimeout.value);
-    const currentValue = value.value !== undefined ? value.value : 0;
-    emit(
-      'update:model-value',
-      props.discreteValues ? props.discreteValues[currentValue] : currentValue,
-    );
-  }
-});
-
-const myClass = computed(() => {
-  return updatePending.value ? 'pending' : '';
-});
+const pendingClass = computed(() => (updatePending.value ? 'pending' : ''));
 </script>
 
-<style lang="scss" scoped>
+<style scoped lang="scss">
 .pending {
   color: $red;
 }

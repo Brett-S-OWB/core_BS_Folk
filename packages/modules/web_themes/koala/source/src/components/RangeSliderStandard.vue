@@ -1,7 +1,7 @@
 <template>
   <div>
-    <div class="text-subtitle2">{{ props.title }}</div>
-    <div class="row items-center justify-between q-ml-sm" :class="myClass">
+    <div class="text-subtitle2">{{ title }}</div>
+    <div class="row items-center justify-between q-ml-sm" :class="pendingClass">
       <q-range
         v-model="value"
         :min="props.min"
@@ -22,15 +22,12 @@
   </div>
 </template>
 <script setup lang="ts">
-import { computed, ref, watch, onBeforeUnmount } from 'vue'
-
-defineOptions({
-  name: 'RangeSliderStandard'
-})
+import { computed } from 'vue';
+import { useDelayModel } from '../composables/useDelayModel';
 
 interface RangeValue {
-  min: number
-  max: number
+  min: number;
+  max: number;
 }
 
 const props = defineProps({
@@ -61,66 +58,17 @@ const props = defineProps({
 })
 
 const emit = defineEmits<{
-  'update:model-value': [value: RangeValue]
-}>()
+  'update:model-value': [value: RangeValue];
+}>();
 
-const tempValue = ref<RangeValue>({ ...props.modelValue })
-const updateTimeout = ref<NodeJS.Timeout | null>(null)
+const { value, updatePending } = useDelayModel<RangeValue>(props, emit);
 
-const updatePending = computed(() => {
-  return (
-    tempValue.value.min !== props.modelValue.min ||
-    tempValue.value.max !== props.modelValue.max
-  )
-})
-
-const value = computed({
-  get: () => tempValue.value,
-  set: (newValue: RangeValue) => {
-    if (updateTimeout.value) {
-      clearTimeout(updateTimeout.value)
-    }
-    tempValue.value = { ...newValue }
-  }
-})
-
-watch(
-  value,
-  (newValue) => {
-    if (!updatePending.value) return
-
-    if (updateTimeout.value) {
-      clearTimeout(updateTimeout.value)
-    }
-    updateTimeout.value = setTimeout(() => {
-      emit('update:model-value', { ...newValue })
-    }, 800)
-  },
-  { deep: true }
-)
-
-watch(
-  () => props.modelValue,
-  (newValue) => {
-    tempValue.value = { ...newValue }
-  }
-)
-
-onBeforeUnmount(() => {
-  if (updateTimeout.value) {
-    clearTimeout(updateTimeout.value)
-    emit('update:model-value', { ...tempValue.value })
-  }
-})
-
-const myClass = computed(() => {
-  return updatePending.value ? 'pending' : ''
-})
+const pendingClass = computed(() => (updatePending.value ? 'pending' : ''));
 </script>
 
-<style lang="scss" scoped>
+<style scoped lang="scss">
 .pending :deep(.q-slider__text) {
-  color: rgb(159, 22, 22);
+  color: rgb(159, 22, 22) !important;
 }
 :deep(.q-slider__pin) {
   top: 100%;
