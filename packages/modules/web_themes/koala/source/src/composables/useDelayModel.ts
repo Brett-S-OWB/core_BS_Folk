@@ -33,7 +33,7 @@ export function useDelayModel<T>(
     return !isEqual(tempValue.value, props.modelValue)
   })
 
-  const value = computed({
+  const delayedValue = computed({
     get: () => tempValue.value,
     set: (newValue: T) => {
       if (updateTimeout.value) {
@@ -44,7 +44,7 @@ export function useDelayModel<T>(
   })
 
   watch(
-    value,
+    delayedValue,
     (newValue) => {
       if (!updatePending.value) return
 
@@ -74,7 +74,7 @@ export function useDelayModel<T>(
   })
 
   return {
-    value,
+    delayedValue,
     updatePending,
   }
 }

@@ -3,7 +3,7 @@
     <div class="text-subtitle2">{{ title }}</div>
     <div class="row items-center justify-between q-ml-sm" :class="pendingClass">
       <q-range
-        v-model="value"
+        v-model="delayedValue"
         :min="props.min"
         :max="props.max"
         :step="props.step"
@@ -50,7 +50,7 @@ const emit = defineEmits<{
   'update:model-value': [value: RangeValue];
 }>();
 
-const { value, updatePending } = useDelayModel<RangeValue>(props, emit);
+const { delayedValue, updatePending } = useDelayModel<RangeValue>(props, emit);
 
 const pendingClass = computed(() => (updatePending.value ? 'pending' : ''));
 </script>

@@ -70,21 +70,21 @@ const emit = defineEmits<{
   'update:model-value': [value: number];
 }>();
 
-const { value, updatePending } = useDelayModel<number>(props, emit);
+const { delayedValue, updatePending } = useDelayModel<number>(props, emit);
 
 const sliderValue = computed({
   get: () => {
     if (props.discreteValues) {
-      const index = props.discreteValues.indexOf(value.value);
+      const index = props.discreteValues.indexOf(delayedValue.value);
       return index >= 0 ? index : 0;
     }
-    return value.value;
+    return delayedValue.value;
   },
   set: (newValue: number) => {
     if (props.discreteValues) {
-      value.value = props.discreteValues[newValue];
+      delayedValue.value = props.discreteValues[newValue];
     } else {
-      value.value = newValue;
+      delayedValue.value = newValue;
     }
   },
 });
@@ -92,7 +92,7 @@ const sliderValue = computed({
 const currentValue = computed(() => {
   return props.discreteValues && sliderValue.value !== undefined
     ? (props.discreteValues[sliderValue.value] ?? props.discreteValues[0])
-    : value.value;
+    : delayedValue.value;
 });
 
 const displayValue = computed(() => {
