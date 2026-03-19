@@ -27,7 +27,7 @@ import type {
   VehicleChargeTarget,
   CalculatedSocState,
   SystemCommandEvent,
-  BatteryChargePriorityRange,
+  RangeValue,
 } from './mqtt-store-model';
 
 export const useMqttStore = defineStore('mqtt', () => {
@@ -1924,9 +1924,9 @@ export const useMqttStore = defineStore('mqtt', () => {
 
   /**
    * Get or set the battery charge priority SoC range for PV charging
-   * @returns BatteryChargePriorityRange
+   * @returns RangeValue
    */
-  const batteryChargePriorityRange = computed<BatteryChargePriorityRange>({
+  const batteryChargePriorityRange = computed<RangeValue>({
     get() {
       const minSoc = getValue.value(
         'openWB/general/chargemode_config/pv_charging/min_bat_soc',
@@ -1939,7 +1939,7 @@ export const useMqttStore = defineStore('mqtt', () => {
         max: maxSoc ?? 100,
       };
     },
-    set(newRange: BatteryChargePriorityRange) {
+    set(newRange: RangeValue) {
       updateTopic(
         'openWB/general/chargemode_config/pv_charging/min_bat_soc',
         newRange.min,

@@ -24,11 +24,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useDelayModel } from '../composables/useDelayModel';
-
-interface RangeValue {
-  min: number;
-  max: number;
-}
+import { RangeValue } from '../stores/mqtt-store-model';
 
 const props = withDefaults(
   defineProps<{

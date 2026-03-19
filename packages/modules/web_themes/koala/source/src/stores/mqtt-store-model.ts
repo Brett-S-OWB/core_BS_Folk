@@ -225,7 +225,7 @@ export interface CounterConfiguration {
   configuration: object;
 }
 
-export interface BatteryChargePriorityRange {
+export interface RangeValue {
   min: number;
   max: number;
 }
