@@ -117,9 +117,8 @@ const displayUnit = computed(() => {
 
 const pendingClass = computed(() => (updatePending.value ? 'pending' : ''));
 </script>
-
 <style scoped lang="scss">
 .pending {
-  color: $red;
+  color: var(--q-negative);
 }
 </style>
