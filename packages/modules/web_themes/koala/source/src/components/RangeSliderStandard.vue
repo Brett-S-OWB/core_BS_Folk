@@ -52,8 +52,11 @@ const pendingClass = computed(() => (updatePending.value ? 'pending' : ''));
 </script>
 
 <style scoped lang="scss">
-.pending :deep(.q-slider__text) {
-  color: rgb(159, 22, 22) !important;
+.pending :deep(.q-slider__text-container) {
+  background-color: $red;
+}
+.pending :deep(.q-slider__pin) {
+  color: $red;
 }
 :deep(.q-slider__pin) {
   top: 100%;
