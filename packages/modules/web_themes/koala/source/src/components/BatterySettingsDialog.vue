@@ -26,8 +26,7 @@
       <q-card-section>
         <div class="text-subtitle2">Ladepriorität:</div>
         <BatteryModeButtons />
-        <div v-if="batteryMode === 'min_soc_bat_mode'" class="q-pt-md">
-          <RangeSliderStandard
+          <RangeSliderStandard  v-if="batteryMode === 'min_soc_bat_mode'" class="q-pt-md"
             v-model="batteryRange"
             title="SoC-Grenzen des Speichers % :"
             :min="0"
@@ -35,7 +34,6 @@
             :step="1"
             :markers="10"
           />
-        </div>
       </q-card-section>
     </q-card>
   </q-dialog>
