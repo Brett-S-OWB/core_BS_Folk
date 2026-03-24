@@ -68,5 +68,6 @@ const maxChanged = computed(() =>
 }
 :deep(.q-range) {
   padding-bottom: 24px;
+  padding-right: 8px;
 }
 </style>
