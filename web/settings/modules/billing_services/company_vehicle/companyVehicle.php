@@ -21,9 +21,9 @@ if ($username === "demo" && $password === "demo") {
     "contract_active" => true,
     "last_sync" => date("c"),
     "assignments" => [
-        ["Ladepunkt" => "Ladepunkt 1", "Fahrzeug" => "VW ID.3", "Mitarbeiter" => "Anna Schmidt"],
-        ["Ladepunkt" => "Ladepunkt 2", "Fahrzeug" => "Audi e-tron", "Mitarbeiter" => "Max Müller"],
-        ["Ladepunkt" => "Ladepunkt 3", "Fahrzeug" => "Tesla Model 3", "Mitarbeiter" => "Rita Maier"]
+        ["chargePoint" => "Ladepunkt 1", "vehicle" => "VW ID.3", "employee" => "Anna Schmidt"],
+        ["chargePoint" => "Ladepunkt 2", "vehicle" => "Audi e-tron", "employee" => "Max Müller"],
+        ["chargePoint" => "Ladepunkt 3", "vehicle" => "Tesla Model 3", "employee" => "Rita Maier"]
     ],
     "error" => null
 ]);
