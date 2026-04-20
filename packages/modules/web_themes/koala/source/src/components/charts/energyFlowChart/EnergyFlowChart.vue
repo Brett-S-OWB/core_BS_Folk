@@ -282,8 +282,8 @@ const maxSystemPower = computed(() => {
 });
 
 function calcDuration(power: number, maxPower: number) {
-  const minDuration = 0.4;
-  const maxDuration = 4.0;
+  const minDuration = 3;
+  const maxDuration = 10.0;
   const absPower = Math.abs(power || 0);
   if (absPower >= maxPower) return `${minDuration}s`;
   if (absPower > 0)
@@ -638,24 +638,89 @@ const svgRectWidth = computed(
       xmlns:svg="http://www.w3.org/2000/svg"
     >
       <g id="layer1" style="display: inline">
-        <path
-          v-for="component in svgComponents"
-          :key="component.id"
-          :id="`flow-path-${component.id}`"
-          :class="[
-            component.class.base,
-            component.class.animationId,
-            { animated: component.class.animated },
-            { animatedReverse: component.class.animatedReverse },
-          ]"
-          :d="
-            component.class.base !== 'vehicle'
-              ? `M ${calcFlowLineAnchorX(component.position.column)}, ` +
-                `${calcRowY(component.position.row)} ${calcColumnX(1)}, ${calcRowY(1)}`
-              : `M ${calcFlowLineAnchorX(component.position.column)}, ` +
-                `${calcRowY(component.position.row)} ${calcFlowLineAnchorX(component.position.column)}, ${calcRowY(component.position.row - 1)}`
-          "
-        />
+        <g v-for="component in svgComponents" :key="component.id">
+          <!-- BACKGROUND STATIC LINE -->
+          <path
+            :d="
+              (() => {
+                const x1 = calcFlowLineAnchorX(component.position.column);
+                const y1 = calcRowY(component.position.row);
+
+                const isVehicle = component.class.base === 'vehicle';
+
+                // vehicle lines stay vertical
+                if (isVehicle) {
+                  const x2 = calcFlowLineAnchorX(component.position.column);
+                  const y2 = calcRowY(component.position.row - 1);
+                  return `M ${x1}, ${y1} L ${x2}, ${y2}`;
+                }
+
+                const x2 = calcColumnX(1);
+                const y2 = calcRowY(1);
+
+                // straight lines (horizontal / vertical)
+                const isStraight = x1 === x2 || y1 === y2;
+                if (isStraight) {
+                  return `M ${x1}, ${y1} L ${x2}, ${y2}`;
+                }
+
+                const cx = (x1 + x2) / 2;
+
+                // UPDATED LOGIC:
+                // Top components → curve outward first (negative offset)
+                // Bottom components → curve inward (positive offset)
+                const curveOffset = component.position.row <= 1 ? -10 : -10;
+
+                const cy = (y1 + y2) / 2 + curveOffset;
+
+                return `M ${x1}, ${y1} Q ${cx}, ${cy} ${x2}, ${y2}`;
+              })()
+            "
+            class="flow-base"
+          />
+
+          <!-- ANIMATED FLOW LINE -->
+          <path
+            :class="[
+              'flow-animated',
+              component.class.base,
+              component.class.animationId,
+              { animated: component.class.animated },
+              { animatedReverse: component.class.animatedReverse },
+            ]"
+            :d="
+              (() => {
+                const x1 = calcFlowLineAnchorX(component.position.column);
+                const y1 = calcRowY(component.position.row);
+
+                const isVehicle = component.class.base === 'vehicle';
+
+                if (isVehicle) {
+                  const x2 = calcFlowLineAnchorX(component.position.column);
+                  const y2 = calcRowY(component.position.row - 1);
+                  return `M ${x1}, ${y1} L ${x2}, ${y2}`;
+                }
+
+                const x2 = calcColumnX(1);
+                const y2 = calcRowY(1);
+
+                const isStraight = x1 === x2 || y1 === y2;
+                if (isStraight) {
+                  return `M ${x1}, ${y1} L ${x2}, ${y2}`;
+                }
+
+                const cx = (x1 + x2) / 2;
+
+                // SAME UPDATED LOGIC HERE
+                const curveOffset = component.position.row <= 1 ? -10 : -10;
+
+                const cy = (y1 + y2) / 2 + curveOffset;
+
+                return `M ${x1}, ${y1} Q ${cx}, ${cy} ${x2}, ${y2}`;
+              })()
+            "
+          />
+        </g>
       </g>
 
       <g id="layer2" style="display: inline">
@@ -665,6 +730,7 @@ const svgRectWidth = computed(
           :cx="calcColumnX(1)"
           :cy="calcRowY(1)"
           :r="svgSize.circleRadius / 3"
+          class="center-node"
         />
 
         <!-- components -->
@@ -701,6 +767,19 @@ const svgRectWidth = computed(
                 :ry="svgSize.circleRadius"
               />
             </clipPath>
+            <filter
+              id="centerGlow"
+              x="-100%"
+              y="-100%"
+              width="300%"
+              height="300%"
+            >
+              <feGaussianBlur stdDeviation="4" result="blur" />
+              <feMerge>
+                <feMergeNode in="blur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
           </defs>
           <rect
             :x="-svgRectWidth / 2"
@@ -807,31 +886,82 @@ svg {
   height: 100%;
   object-fit: contain;
 }
+/* =========================
+   CENTER ENERGY NODE
+   ========================= */
+.center-node {
+  fill: #5d7178; /* electric blue */
+  filter: url(#centerGlow);
+  animation: centerPulse 2.5s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+/* subtle pulsing glow */
+@keyframes centerPulse {
+  0% {
+    opacity: 0.6;
+    transform: scale(0.3);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(0.7);
+  }
+  100% {
+    opacity: 0.6;
+    transform: scale(0.3);
+  }
+}
 
-path {
+/* =========================
+   BASE STATIC LINE
+   ========================= */
+.flow-base {
   fill: none;
-  fill-rule: evenodd;
-  stroke: rgb(64, 64, 64);
-  stroke-width: 0.75;
-  stroke-linecap: butt;
-  stroke-linejoin: miter;
-  stroke-miterlimit: 4;
-  transition: stroke 0.5s;
+  stroke: rgba(100, 100, 100, 0.4);
+  stroke-width: 0.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
-/* Basis for all animated lines */
-path.animated {
-  animation-name: dash;
-  animation-timing-function: linear;
-  animation-iteration-count: infinite;
-  stroke-dasharray: 5;
+/* Dark mode */
+.body--dark .flow-base {
+  stroke: rgba(255, 255, 255, 0.2);
 }
+
+/* =========================
+   ANIMATED FLOW LAYER
+   ========================= */
+.flow-animated {
+  fill: none;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Glow + motion */
+path.animated,
 path.animatedReverse {
-  animation-name: dashReverse;
+  stroke-dasharray: 2 50;
   animation-timing-function: linear;
   animation-iteration-count: infinite;
-  stroke-dasharray: 5;
+  stroke-linecap: round;
+
+  filter: drop-shadow(0 0 2px currentColor) drop-shadow(0 0 6px currentColor);
 }
+
+/* Forward */
+path.animated {
+  animation-name: energyFlow;
+}
+
+/* Reverse */
+path.animatedReverse {
+  animation-name: energyFlowReverse;
+}
+
+/* =========================
+   COMPONENT COLORS + SPEED
+   ========================= */
 
 path.animated.grid {
   stroke: var(--q-negative);
@@ -897,34 +1027,31 @@ path.animatedReverse.vehicle-3 {
   animation-duration: v-bind('animationDurations.vehicle3');
 }
 
-@keyframes dash {
-  from {
-    stroke-dashoffset: 10;
-  }
-  to {
+/* =========================
+   ANIMATIONS
+   ========================= */
+
+@keyframes energyFlow {
+  0% {
     stroke-dashoffset: 0;
   }
-}
-@keyframes dashReverse {
-  from {
-    stroke-dashoffset: 0;
-  }
-  to {
-    stroke-dashoffset: 10;
+  100% {
+    stroke-dashoffset: -200;
   }
 }
 
-:root {
-  path.home {
-    stroke: var(--q-home-stroke);
+@keyframes energyFlowReverse {
+  0% {
+    stroke-dashoffset: -200;
+  }
+  100% {
+    stroke-dashoffset: 0;
   }
 }
 
-.body--dark {
-  path.home {
-    stroke: var(--q-white);
-  }
-}
+/* =========================
+   EXISTING STYLES (UNCHANGED)
+   ========================= */
 
 circle {
   fill: var(--q-secondary);
@@ -942,13 +1069,13 @@ rect {
 
 :root {
   image {
-    filter: brightness(0.4); /* Creates a dark grey icons in light theme */
+    filter: brightness(0.4);
   }
 }
 
 .body--dark {
   image {
-    filter: brightness(1); /* white icons in dark theme */
+    filter: brightness(1);
   }
 }
 
@@ -1013,13 +1140,13 @@ text .fill-dark {
 
 :root {
   .home text {
-    fill: var(--q-brown-text); /* Brown text in light theme */
+    fill: var(--q-brown-text);
   }
 }
 
 .body--dark {
   .home text {
-    fill: var(--q-white); /* White text in dark theme */
+    fill: var(--q-white);
   }
 }
 
