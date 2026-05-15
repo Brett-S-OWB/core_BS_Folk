@@ -453,6 +453,13 @@ const chartOptions = computed<ChartOptions<'line'>>(() => ({
 .chart-wrapper {
   flex: 1;
   min-height: 0;
+  background: var(--q-background);
+  border-radius: 4px;
+  filter: drop-shadow(0 0 0.3rem var(--q-secondary));
+}
+
+.body--dark .chart-wrapper {
+  filter: drop-shadow(0 0 0.3rem var(--q-white));
 }
 
 .chart-wrapper > canvas {
