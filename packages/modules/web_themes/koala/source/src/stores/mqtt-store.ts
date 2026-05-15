@@ -4077,7 +4077,7 @@ export const useMqttStore = defineStore('mqtt', () => {
     color: string | null | undefined,
     defaultColor: string,
   ) => {
-    if (!color || color === defaultColor) return null;
+    if (!color) return defaultColor;
     return color;
   };
 
@@ -4253,7 +4253,5 @@ export const useMqttStore = defineStore('mqtt', () => {
     // electricity tariff provider
     etProviderConfigured,
     etPrices,
-    // helpers
-    resolveComponentColor,
   };
 });
