@@ -521,11 +521,31 @@ watch(
   pointer-events: none;
 }
 .card {
+  --component-color: var(--q-primary);
   border-radius: 0.5rem;
   background: var(--q-background);
   filter: drop-shadow(0 0 0.3rem var(--q-secondary));
-  border: 0.125rem solid var(--q-primary);
+  border: 0.125rem solid var(--card-border-color);
   margin-bottom: 0.25rem;
+}
+.grid.card {
+  --component-color: var(--q-grid-stroke);
+}
+.battery.card {
+  --component-color: var(--q-battery-stroke);
+}
+.pv.card {
+  --component-color: var(--q-pv-stroke);
+}
+.house.card {
+  --component-color: var(--q-home-stroke);
+}
+.chargepoint.card {
+  --component-color: var(--q-charge-point-stroke);
+}
+/* Colour theme: per-component border. --component-color resolves on the card. */
+body.theme-colour .card {
+  border-color: var(--component-color);
 }
 .body--dark .card {
   filter: drop-shadow(0 0 0.3rem var(--q-white));

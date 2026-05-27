@@ -1024,12 +1024,21 @@ circle {
 }
 
 circle:not(.soc) {
+  stroke: var(--flow-outline-color);
   fill: var(--q-background);
 }
 
 rect {
+  stroke: var(--flow-outline-color);
   stroke-width: v-bind(svgStrokeWidth);
   fill: var(--q-background);
+}
+
+/* Colour theme: per-component outlines. --component-color resolves here
+   (on the circle/rect) via its component-group ancestor, unlike at body level. */
+body.theme-colour circle:not(.soc),
+body.theme-colour rect {
+  stroke: var(--component-color);
 }
 
 /* Drop shadow by way of feDropShadow for browser compatibility (safari webkit) */
@@ -1066,11 +1075,30 @@ text .fill-danger {
   fill: var(--q-secondary) !important;
 }
 
+/* Per-component self color, consumed by --flow-outline-color in the "colour" theme */
+.grid {
+  --component-color: var(--q-grid-stroke);
+}
+
+.home {
+  --component-color: var(--q-home-stroke);
+}
+
+.pv {
+  --component-color: var(--q-pv-stroke);
+}
+
+.charge-point {
+  --component-color: var(--q-charge-point-stroke);
+}
+
 .battery {
+  --component-color: var(--q-battery-stroke);
   --soc-color: var(--q-battery-stroke);
 }
 
 .vehicle {
+  --component-color: var(--q-vehicle-stroke);
   --soc-color: var(--q-vehicle-stroke);
 }
 

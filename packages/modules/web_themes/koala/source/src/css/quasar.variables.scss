@@ -89,6 +89,10 @@ $table-hover: #f9f8f8;
   --q-diagram-icon: #{$diagram-icon};
   --q-table-hover: #{$table-hover};
 
+  // Theme tokens (overridden per color scheme; defaults match "white")
+  --flow-outline-color: transparent;
+  --card-border-color: var(--q-primary);
+
   // Main background
   background-color: var(--q-background-1);
   // Text color
@@ -254,6 +258,28 @@ $table-hover: #f9f8f8;
     border: 1px solid var(--q-secondary) !important;
   }
 }
+
+// Color scheme themes — applied as a class on <body>, light mode only.
+// Dark mode (.body--dark) is intentionally excluded so it stays independent.
+body:not(.body--dark).theme-white {
+  --q-background: #ffffff;
+  --flow-outline-color: transparent;
+  --card-border-color: var(--q-primary);
+}
+body:not(.body--dark).theme-grey {
+  --q-background: #eaeaee;
+  --flow-outline-color: var(--q-white);
+  --card-border-color: var(--q-primary);
+}
+body:not(.body--dark).theme-colour {
+  --q-background: #e3e3ec;
+  // Per-component outlines/borders are applied in the component styles
+  // (EnergyFlowChart / DailyTotals) because var(--component-color) can't
+  // resolve here — it's defined deeper, on each component element.
+  --flow-outline-color: transparent;
+  --card-border-color: var(--q-primary);
+}
+
 // Dark Theme Base Colors
 $dark-page: #18191a; // This overrides Quasar's default dark page color - outer background
 $dark-primary: #3874db;
@@ -320,6 +346,10 @@ $dark-charge-plan-link-button: #75787a;
   --q-dark-daily-totals-chargepoint-fill: #{$dark-daily-totals-chargepoint-fill};
   --q-charge-plan-link-button: #{$dark-charge-plan-link-button};
   --q-diagram-icon: #{$white};
+
+  // Theme tokens kept neutral in dark mode (color schemes apply in light only)
+  --flow-outline-color: transparent;
+  --card-border-color: var(--q-primary);
 
   // Main background
   background-color: $dark-page;

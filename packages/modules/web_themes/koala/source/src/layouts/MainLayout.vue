@@ -122,6 +122,57 @@
               </q-btn-group>
             </q-item-section>
           </q-item>
+
+          <q-item>
+            <q-item-section avatar>
+              <q-icon name="palette" />
+            </q-item-section>
+
+            <q-item-section>
+              <q-item-label>Farbschema</q-item-label>
+            </q-item-section>
+
+            <q-item-section side>
+              <q-btn-group flat>
+                <q-btn
+                  flat
+                  round
+                  :color="colorScheme === 'white' ? 'primary' : ''"
+                  icon="square"
+                  @click="setColorScheme('white')"
+                  size="sm"
+                  :disable="colorScheme === 'white'"
+                  aria-label="Weiß"
+                >
+                  <q-tooltip>Weiß</q-tooltip>
+                </q-btn>
+                <q-btn
+                  flat
+                  round
+                  :color="colorScheme === 'grey' ? 'primary' : ''"
+                  icon="gradient"
+                  @click="setColorScheme('grey')"
+                  size="sm"
+                  :disable="colorScheme === 'grey'"
+                  aria-label="Grau"
+                >
+                  <q-tooltip>Grau</q-tooltip>
+                </q-btn>
+                <q-btn
+                  flat
+                  round
+                  :color="colorScheme === 'colour' ? 'primary' : ''"
+                  icon="palette"
+                  @click="setColorScheme('colour')"
+                  size="sm"
+                  :disable="colorScheme === 'colour'"
+                  aria-label="Farbe"
+                >
+                  <q-tooltip>Farbe</q-tooltip>
+                </q-btn>
+              </q-btn-group>
+            </q-item-section>
+          </q-item>
         </q-list>
       </q-scroll-area>
     </q-drawer>
@@ -166,6 +217,21 @@ const setTheme = (mode: 'light' | 'dark' | 'auto') => {
   }
 };
 
+type ColorScheme = 'white' | 'grey' | 'colour';
+const colorSchemes: ColorScheme[] = ['white', 'grey', 'colour'];
+const colorScheme = ref<ColorScheme>('white');
+
+const applyColorScheme = (scheme: ColorScheme) => {
+  colorSchemes.forEach((s) => document.body.classList.remove(`theme-${s}`));
+  document.body.classList.add(`theme-${scheme}`);
+};
+
+const setColorScheme = (scheme: ColorScheme) => {
+  colorScheme.value = scheme;
+  applyColorScheme(scheme);
+  localStorage.setItem('colorScheme', scheme);
+};
+
 onMounted(() => {
   const savedTheme = localStorage.getItem('theme');
   if (savedTheme) {
@@ -175,6 +241,12 @@ onMounted(() => {
     themeMode.value = 'auto';
     $q.dark.set('auto');
   }
+
+  const savedScheme = localStorage.getItem('colorScheme') as ColorScheme | null;
+  const initialScheme =
+    savedScheme && colorSchemes.includes(savedScheme) ? savedScheme : 'white';
+  colorScheme.value = initialScheme;
+  applyColorScheme(initialScheme);
 });
 </script>
 
