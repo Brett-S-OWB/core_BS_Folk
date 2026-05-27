@@ -527,6 +527,21 @@ watch(
   border: 0.125rem solid var(--q-primary);
   margin-bottom: 0.25rem;
 }
+.grid.card {
+  border-color: var(--q-grid-stroke);
+}
+.battery.card {
+  border-color: var(--q-battery-stroke);
+}
+.pv.card {
+  border-color: var(--q-pv-stroke);
+}
+.house.card {
+  border-color: var(--q-home-stroke);
+}
+.chargepoint.card {
+  border-color: var(--q-charge-point-stroke);
+}
 .body--dark .card {
   filter: drop-shadow(0 0 0.3rem var(--q-white));
 }
