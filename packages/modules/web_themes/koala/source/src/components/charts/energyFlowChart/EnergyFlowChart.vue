@@ -993,11 +993,14 @@ circle {
 }
 
 circle:not(.soc) {
+  stroke: white;
+  stroke-width: 0.5;
   fill: var(--q-background);
 }
 
 rect {
-  stroke-width: v-bind(svgStrokeWidth);
+  stroke: white;
+  stroke-width: 0.5;
   fill: var(--q-background);
 }
 
