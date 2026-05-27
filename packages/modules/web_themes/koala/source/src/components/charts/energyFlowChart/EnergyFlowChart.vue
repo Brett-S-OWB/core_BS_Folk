@@ -633,6 +633,15 @@ const calcFlowLineAnchorX = (column: number): number => {
   return columnX;
 };
 
+const calcFlowPath = (component: FlowComponent): string => {
+  const x1 = calcFlowLineAnchorX(component.position.column);
+  const y1 = calcRowY(component.position.row);
+  if (component.class.base === 'vehicle') {
+    return `M ${x1}, ${y1} ${x1}, ${calcRowY(component.position.row - 1)}`;
+  }
+  return `M ${x1}, ${y1} ${calcColumnX(1)}, ${calcRowY(1)}`;
+};
+
 const calcSvgElementBoundingBox = (elementId: string) => {
   const element = document.getElementById(elementId);
   if (element == undefined || !(element instanceof SVGGraphicsElement)) {
@@ -686,24 +695,29 @@ const svgRectWidth = computed(
       </defs>
 
       <g id="layer1" style="display: inline">
-        <path
-          v-for="component in svgComponents"
-          :key="component.id"
-          :id="`flow-path-${component.id}`"
-          :class="[
-            component.class.base,
-            component.class.animationId,
-            { animated: component.class.animated },
-            { animatedReverse: component.class.animatedReverse },
-          ]"
-          :d="
-            component.class.base !== 'vehicle'
-              ? `M ${calcFlowLineAnchorX(component.position.column)}, ` +
-                `${calcRowY(component.position.row)} ${calcColumnX(1)}, ${calcRowY(1)}`
-              : `M ${calcFlowLineAnchorX(component.position.column)}, ` +
-                `${calcRowY(component.position.row)} ${calcFlowLineAnchorX(component.position.column)}, ${calcRowY(component.position.row - 1)}`
-          "
-        />
+        <g v-for="component in svgComponents" :key="component.id">
+          <!-- static background line -->
+          <path
+            class="flow-base"
+            :class="{
+              animated: component.class.animated,
+              animatedReverse: component.class.animatedReverse,
+            }"
+            :d="calcFlowPath(component)"
+          />
+          <!-- glowing flow overlay -->
+          <path
+            :id="`flow-path-${component.id}`"
+            class="flow-animated"
+            :class="[
+              component.class.base,
+              component.class.animationId,
+              { animated: component.class.animated },
+              { animatedReverse: component.class.animatedReverse },
+            ]"
+            :d="calcFlowPath(component)"
+          />
+        </g>
       </g>
 
       <g id="layer2" style="display: inline">
@@ -877,24 +891,34 @@ svg {
   object-fit: contain;
 }
 
-path {
+.flow-base {
   fill: none;
-  fill-rule: evenodd;
   stroke: var(--q-secondary);
   stroke-width: 0.75;
-  stroke-linecap: butt;
-  stroke-linejoin: miter;
-  stroke-miterlimit: 4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
   transition: stroke 0.5s;
 }
 
-.body--dark path {
+.body--dark .flow-base {
   stroke: var(--q-white);
 }
 
+/* slightly darker solid line beneath an active flow */
+.flow-base.animated,
+.flow-base.animatedReverse {
+  stroke: var(--q-grey);
+}
+
+/* overlay stays hidden until energy is flowing */
+.flow-animated {
+  fill: none;
+  stroke: none;
+}
+
 /* Animated energy flow: glowing dots traveling along the line */
-path.animated,
-path.animatedReverse {
+.flow-animated.animated,
+.flow-animated.animatedReverse {
   stroke: currentColor;
   stroke-width: 1.8;
   stroke-linecap: round;
@@ -904,10 +928,10 @@ path.animatedReverse {
   filter: drop-shadow(0 0 2px currentColor) drop-shadow(0 0 6px currentColor);
 }
 
-path.animated {
+.flow-animated.animated {
   animation-name: energyFlow;
 }
-path.animatedReverse {
+.flow-animated.animatedReverse {
   animation-name: energyFlowReverse;
 }
 
