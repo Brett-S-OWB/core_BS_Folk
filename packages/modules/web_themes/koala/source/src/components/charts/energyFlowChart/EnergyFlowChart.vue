@@ -997,6 +997,11 @@ circle:not(.soc) {
   fill: var(--q-background);
 }
 
+#center {
+  stroke: rgb(189, 186, 186);
+  stroke-width: 0.4;
+}
+
 rect {
   stroke-width: 0.4;
   fill: var(--q-background);
