@@ -289,8 +289,8 @@ const maxSystemPower = computed(() => {
 });
 
 function calcDuration(power: number, maxPower: number) {
-  const minDuration = 0.4;
-  const maxDuration = 4.0;
+  const minDuration = 3;
+  const maxDuration = 10;
   const absPower = Math.abs(power || 0);
   if (absPower >= maxPower) return `${minDuration}s`;
   if (absPower > 0)
@@ -888,100 +888,107 @@ path {
   transition: stroke 0.5s;
 }
 
-/* Basis for all animated lines */
-path.animated {
-  animation-name: dash;
-  animation-timing-function: linear;
-  animation-iteration-count: infinite;
-  stroke-dasharray: 5;
-}
-path.animatedReverse {
-  animation-name: dashReverse;
-  animation-timing-function: linear;
-  animation-iteration-count: infinite;
-  stroke-dasharray: 5;
+.body--dark path {
+  stroke: var(--q-white);
 }
 
+/* Animated energy flow: glowing dots traveling along the line */
 path.animated,
 path.animatedReverse {
-  stroke: var(--q-brown-text);
-  opacity: 0.7;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-dasharray: 2 50;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  filter: drop-shadow(0 0 2px currentColor) drop-shadow(0 0 6px currentColor);
 }
 
-.body--dark {
-  path {
-    stroke: var(--q-white);
-  }
-  path.animated,
-  path.animatedReverse {
-    stroke: var(--q-white);
-  }
+path.animated {
+  animation-name: energyFlow;
+}
+path.animatedReverse {
+  animation-name: energyFlowReverse;
 }
 
-path.animated.grid,
+path.animated.grid {
+  color: var(--q-negative);
+  animation-duration: v-bind('animationDurations.grid');
+}
 path.animatedReverse.grid {
+  color: var(--q-positive);
   animation-duration: v-bind('animationDurations.grid');
 }
 
 path.animated.home,
 path.animatedReverse.home {
+  color: var(--q-home-stroke);
   animation-duration: v-bind('animationDurations.home');
 }
 
 path.animated.pv,
 path.animatedReverse.pv {
+  color: var(--q-positive);
   animation-duration: v-bind('animationDurations.pv');
 }
 
 path.animated.battery,
 path.animatedReverse.battery {
+  color: var(--q-battery-stroke);
   animation-duration: v-bind('animationDurations.battery');
 }
 
 path.animated.charge-point-1,
 path.animatedReverse.charge-point-1 {
+  color: var(--q-charge-point-stroke);
   animation-duration: v-bind('animationDurations.chargePoint1');
 }
 path.animated.charge-point-2,
 path.animatedReverse.charge-point-2 {
+  color: var(--q-charge-point-stroke);
   animation-duration: v-bind('animationDurations.chargePoint2');
 }
 path.animated.charge-point-3,
 path.animatedReverse.charge-point-3 {
+  color: var(--q-charge-point-stroke);
   animation-duration: v-bind('animationDurations.chargePoint3');
 }
 path.animated.charge-point-sum,
 path.animatedReverse.charge-point-sum {
+  color: var(--q-charge-point-stroke);
   animation-duration: v-bind('animationDurations.chargePointSum');
 }
 
 path.animated.vehicle-1,
 path.animatedReverse.vehicle-1 {
+  color: var(--q-vehicle-stroke);
   animation-duration: v-bind('animationDurations.vehicle1');
 }
 path.animated.vehicle-2,
 path.animatedReverse.vehicle-2 {
+  color: var(--q-vehicle-stroke);
   animation-duration: v-bind('animationDurations.vehicle2');
 }
 path.animated.vehicle-3,
 path.animatedReverse.vehicle-3 {
+  color: var(--q-vehicle-stroke);
   animation-duration: v-bind('animationDurations.vehicle3');
 }
 
-@keyframes dash {
-  from {
-    stroke-dashoffset: 10;
-  }
-  to {
+@keyframes energyFlow {
+  0% {
     stroke-dashoffset: 0;
+  }
+  100% {
+    stroke-dashoffset: -200;
   }
 }
-@keyframes dashReverse {
-  from {
-    stroke-dashoffset: 0;
+@keyframes energyFlowReverse {
+  0% {
+    stroke-dashoffset: -200;
   }
-  to {
-    stroke-dashoffset: 10;
+  100% {
+    stroke-dashoffset: 0;
   }
 }
 
