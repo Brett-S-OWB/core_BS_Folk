@@ -993,15 +993,43 @@ circle {
 }
 
 circle:not(.soc) {
-  stroke: white;
-  stroke-width: 0.5;
+  stroke-width: 0.4;
   fill: var(--q-background);
 }
 
 rect {
-  stroke: white;
-  stroke-width: 0.5;
+  stroke-width: 0.4;
   fill: var(--q-background);
+}
+
+.grid rect,
+.grid circle:not(.soc) {
+  stroke: var(--q-grid-stroke);
+}
+
+.home rect,
+.home circle:not(.soc) {
+  stroke: var(--q-home-stroke);
+}
+
+.pv rect,
+.pv circle:not(.soc) {
+  stroke: var(--q-pv-stroke);
+}
+
+.battery rect,
+.battery circle:not(.soc) {
+  stroke: var(--q-battery-stroke);
+}
+
+.charge-point rect,
+.charge-point circle:not(.soc) {
+  stroke: var(--q-charge-point-stroke);
+}
+
+.vehicle rect,
+.vehicle circle:not(.soc) {
+  stroke: var(--q-vehicle-stroke);
 }
 
 /* Drop shadow by way of feDropShadow for browser compatibility (safari webkit) */
