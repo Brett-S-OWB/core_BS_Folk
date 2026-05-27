@@ -339,7 +339,7 @@ const svgComponents = computed((): FlowComponent[] => {
       label: ['EVU', absoluteValueObject(gridPower.value).textValue],
       powerValue: Number(gridPower.value.value),
       iconComponent: GridIcon,
-      iconColor: gridId.value
+      iconColor: gridId.value !== undefined
         ? mqttStore.gridComponentColor(gridId.value) || 'var(--q-diagram-icon)'
         : 'var(--q-diagram-icon)',
     });
