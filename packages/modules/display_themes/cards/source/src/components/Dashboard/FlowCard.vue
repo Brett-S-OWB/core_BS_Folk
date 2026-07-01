@@ -39,6 +39,10 @@ export default {
       modalChargeModeSettingsVisible: false,
       modalBatteryModeSettingsVisible: false,
       modalChargePointId: 0,
+      // number of energy dots streaming along each active flow line
+      flowDotCount: 3,
+      // radius of an energy dot in svg user units
+      flowDotRadius: 1,
     };
   },
   computed: {
@@ -687,28 +691,33 @@ export default {
       }
       return columnX;
     },
-    calcFlowPath(component) {
-      let x1 = this.calcFlowLineAnchorX(component.position.column);
-      let y1 = this.calcRowY(component.position.row);
+    calcFlowEndpoints(component) {
+      // straight-line start/end for a component's flow line
+      const x1 = this.calcFlowLineAnchorX(component.position.column);
+      const y1 = this.calcRowY(component.position.row);
       if (component.class.base === "vehicle") {
-        return `M ${x1}, ${y1} ${x1}, ${this.calcRowY(component.position.row - 1)}`;
+        return { x1, y1, x2: x1, y2: this.calcRowY(component.position.row - 1) };
       }
-      return `M ${x1}, ${y1} ${this.calcColumnX(1)}, ${this.calcRowY(1)}`;
+      return { x1, y1, x2: this.calcColumnX(1), y2: this.calcRowY(1) };
+    },
+    calcFlowPath(component) {
+      const { x1, y1, x2, y2 } = this.calcFlowEndpoints(component);
+      return `M ${x1}, ${y1} ${x2}, ${y2}`;
     },
     calcDuration(power, maxPower) {
-      // faster flow for higher power, clamped between min and max duration
+      // faster flow for higher power, clamped between min and max (seconds)
       const minDuration = 3;
       const maxDuration = 10;
       const absPower = Math.abs(power || 0);
       if (absPower >= maxPower) {
-        return `${minDuration}s`;
+        return minDuration;
       }
       if (absPower > 0) {
-        return `${maxDuration - (maxDuration - minDuration) * (absPower / maxPower)}s`;
+        return maxDuration - (maxDuration - minDuration) * (absPower / maxPower);
       }
-      return `${maxDuration}s`;
+      return maxDuration;
     },
-    flowDuration(component) {
+    flowDurationSeconds(component) {
       const powerById = {
         grid: this.gridPower.value,
         home: this.homePower.value,
@@ -723,6 +732,20 @@ export default {
         "charge-point-sum": this.chargePointSumPower.value,
       };
       return this.calcDuration(powerById[component.id], this.maxSystemPower);
+    },
+    flowDotStyle(component, index) {
+      // per-dot start/end coords fed to the composited transform keyframes;
+      // dots are staggered evenly along the line via a negative delay
+      const { x1, y1, x2, y2 } = this.calcFlowEndpoints(component);
+      const duration = this.flowDurationSeconds(component);
+      return {
+        "--flow-x1": `${x1}px`,
+        "--flow-y1": `${y1}px`,
+        "--flow-x2": `${x2}px`,
+        "--flow-y2": `${y2}px`,
+        animationDuration: `${duration}s`,
+        animationDelay: `-${(duration * index) / this.flowDotCount}s`,
+      };
     },
     calcSvgElementBoundingBox(elementId) {
       let element = document.getElementById(elementId);
@@ -805,23 +828,27 @@ export default {
               <!-- static background line -->
               <path
                 class="flow-base"
-                :class="[
-                  { animated: component.class.animated },
-                  { animatedReverse: component.class.animatedReverse },
-                ]"
                 :d="calcFlowPath(component)"
               />
-              <!-- animated dotted overlay -->
-              <path
-                class="flow-animated"
-                :class="[
-                  component.class.base,
-                  { animated: component.class.animated },
-                  { animatedReverse: component.class.animatedReverse },
-                ]"
-                :style="{ animationDuration: flowDuration(component) }"
-                :d="calcFlowPath(component)"
-              />
+              <!-- animated energy dots (GPU-composited transform) -->
+              <template
+                v-if="
+                  component.class.animated || component.class.animatedReverse
+                "
+              >
+                <circle
+                  v-for="dot in flowDotCount"
+                  :key="dot"
+                  class="flow-dot"
+                  :class="[
+                    component.class.base,
+                    { animated: component.class.animated },
+                    { animatedReverse: component.class.animatedReverse },
+                  ]"
+                  :r="flowDotRadius"
+                  :style="flowDotStyle(component, dot - 1)"
+                />
+              </template>
             </g>
           </g>
 
@@ -1017,61 +1044,48 @@ export default {
   transition: stroke 0.5s;
 }
 
-/* overlay stays hidden until energy is flowing */
-.flow-animated {
-  fill: none;
-  stroke: none;
-}
-
-/* animated energy flow: dots traveling along the line */
-.flow-animated.animated,
-.flow-animated.animatedReverse {
-  stroke: currentColor;
-  stroke-width: 1.8;
-  stroke-linecap: round;
-  stroke-dasharray: 2 50;
+/* energy dots travel the flow line via a composited transform, which the
+   GPU moves without repainting each frame (much lighter on the Pi) */
+.flow-dot {
+  fill: currentColor;
   animation-timing-function: linear;
   animation-iteration-count: infinite;
+  pointer-events: none;
 }
 
-.flow-animated.animated {
-  animation-name: energyFlow;
+.flow-dot.animated {
+  animation-name: flowForward;
 }
 
-.flow-animated.animatedReverse {
-  animation-name: energyFlowReverse;
+.flow-dot.animatedReverse {
+  animation-name: flowReverse;
 }
 
-path.animated.grid {
+.flow-dot.animated.grid {
   color: var(--color--danger);
 }
 
-path.animatedReverse.grid {
+.flow-dot.animatedReverse.grid {
   color: var(--color--success);
 }
 
-path.animated.home,
-path.animatedReverse.home {
+.flow-dot.home {
   color: white;
 }
 
-path.animated.pv,
-path.animatedReverse.pv {
+.flow-dot.pv {
   color: var(--color--success);
 }
 
-path.animated.battery,
-path.animatedReverse.battery {
+.flow-dot.battery {
   color: var(--color--warning);
 }
 
-path.animated.charge-point,
-path.animatedReverse.charge-point {
+.flow-dot.charge-point {
   color: var(--color--primary);
 }
 
-path.animated.vehicle,
-path.animatedReverse.vehicle {
+.flow-dot.vehicle {
   color: var(--color--teal);
 }
 
@@ -1084,21 +1098,21 @@ rect {
   fill: #3b3b3d;
 }
 
-@keyframes energyFlow {
-  0% {
-    stroke-dashoffset: 0;
+@keyframes flowForward {
+  from {
+    transform: translate(var(--flow-x1), var(--flow-y1));
   }
-  100% {
-    stroke-dashoffset: -200;
+  to {
+    transform: translate(var(--flow-x2), var(--flow-y2));
   }
 }
 
-@keyframes energyFlowReverse {
-  0% {
-    stroke-dashoffset: -200;
+@keyframes flowReverse {
+  from {
+    transform: translate(var(--flow-x2), var(--flow-y2));
   }
-  100% {
-    stroke-dashoffset: 0;
+  to {
+    transform: translate(var(--flow-x1), var(--flow-y1));
   }
 }
 
