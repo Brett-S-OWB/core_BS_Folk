@@ -39,10 +39,11 @@ export default {
       modalChargeModeSettingsVisible: false,
       modalBatteryModeSettingsVisible: false,
       modalChargePointId: 0,
-      // number of energy dots streaming along each active flow line
-      flowDotCount: 3,
-      // radius of an energy dot in svg user units
-      flowDotRadius: 1,
+      // number of energy streaks travelling along each active flow line
+      flowDotCount: 1,
+      // streak size in svg user units (length along travel, width = thickness)
+      flowDotLength: 4.5,
+      flowDotWidth: 2,
     };
   },
   computed: {
@@ -706,8 +707,8 @@ export default {
     },
     calcDuration(power, maxPower) {
       // faster flow for higher power, clamped between min and max (seconds)
-      const minDuration = 3;
-      const maxDuration = 10;
+      const minDuration = 0.8;
+      const maxDuration = 4;
       const absPower = Math.abs(power || 0);
       if (absPower >= maxPower) {
         return minDuration;
@@ -734,15 +735,18 @@ export default {
       return this.calcDuration(powerById[component.id], this.maxSystemPower);
     },
     flowDotStyle(component, index) {
-      // per-dot start/end coords fed to the composited transform keyframes;
-      // dots are staggered evenly along the line via a negative delay
+      // per-streak start/end coords + orientation fed to the composited
+      // transform keyframes; multiple streaks are staggered via negative delay
       const { x1, y1, x2, y2 } = this.calcFlowEndpoints(component);
       const duration = this.flowDurationSeconds(component);
+      // orient the oval streak along the direction of travel
+      const angle = (Math.atan2(y2 - y1, x2 - x1) * 180) / Math.PI;
       return {
         "--flow-x1": `${x1}px`,
         "--flow-y1": `${y1}px`,
         "--flow-x2": `${x2}px`,
         "--flow-y2": `${y2}px`,
+        "--flow-angle": `${angle}deg`,
         animationDuration: `${duration}s`,
         animationDelay: `-${(duration * index) / this.flowDotCount}s`,
       };
@@ -836,7 +840,7 @@ export default {
                   component.class.animated || component.class.animatedReverse
                 "
               >
-                <circle
+                <rect
                   v-for="dot in flowDotCount"
                   :key="dot"
                   class="flow-dot"
@@ -845,7 +849,12 @@ export default {
                     { animated: component.class.animated },
                     { animatedReverse: component.class.animatedReverse },
                   ]"
-                  :r="flowDotRadius"
+                  :x="-flowDotLength / 2"
+                  :y="-flowDotWidth / 2"
+                  :width="flowDotLength"
+                  :height="flowDotWidth"
+                  :rx="flowDotWidth / 2"
+                  :ry="flowDotWidth / 2"
                   :style="flowDotStyle(component, dot - 1)"
                 />
               </template>
@@ -1100,19 +1109,23 @@ rect {
 
 @keyframes flowForward {
   from {
-    transform: translate(var(--flow-x1), var(--flow-y1));
+    transform: translate(var(--flow-x1), var(--flow-y1))
+      rotate(var(--flow-angle));
   }
   to {
-    transform: translate(var(--flow-x2), var(--flow-y2));
+    transform: translate(var(--flow-x2), var(--flow-y2))
+      rotate(var(--flow-angle));
   }
 }
 
 @keyframes flowReverse {
   from {
-    transform: translate(var(--flow-x2), var(--flow-y2));
+    transform: translate(var(--flow-x2), var(--flow-y2))
+      rotate(var(--flow-angle));
   }
   to {
-    transform: translate(var(--flow-x1), var(--flow-y1));
+    transform: translate(var(--flow-x1), var(--flow-y1))
+      rotate(var(--flow-angle));
   }
 }
 
