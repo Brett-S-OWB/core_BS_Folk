@@ -304,6 +304,29 @@ export default {
           return "---";
       }
     },
+    maxSystemPower() {
+      // highest absolute power in the system, used to scale flow speed
+      const powerValues = [
+        Math.abs(Number(this.gridPower.value)),
+        Math.abs(Number(this.homePower.value)),
+        Math.abs(Number(this.pvPower.value)),
+        Math.abs(Number(this.batteryPower.value)),
+        Math.abs(Number(this.chargePoint1Power.value)),
+        Math.abs(Number(this.chargePoint2Power.value)),
+        Math.abs(Number(this.chargePoint3Power.value)),
+        // only consider the sum when more than 3 charge points are shown
+        ...(this.connectedChargePoints.length > 3
+          ? [Math.abs(Number(this.chargePointSumPower.value))]
+          : []),
+      ];
+      const filteredPowerValues = powerValues.filter(
+        (value) => !isNaN(value) && value !== undefined && value !== null,
+      );
+      if (filteredPowerValues.length === 0) {
+        return 1000;
+      }
+      return Math.max(...filteredPowerValues);
+    },
     svgComponents() {
       var components = [];
       // add grid component
@@ -664,6 +687,43 @@ export default {
       }
       return columnX;
     },
+    calcFlowPath(component) {
+      let x1 = this.calcFlowLineAnchorX(component.position.column);
+      let y1 = this.calcRowY(component.position.row);
+      if (component.class.base === "vehicle") {
+        return `M ${x1}, ${y1} ${x1}, ${this.calcRowY(component.position.row - 1)}`;
+      }
+      return `M ${x1}, ${y1} ${this.calcColumnX(1)}, ${this.calcRowY(1)}`;
+    },
+    calcDuration(power, maxPower) {
+      // faster flow for higher power, clamped between min and max duration
+      const minDuration = 3;
+      const maxDuration = 10;
+      const absPower = Math.abs(power || 0);
+      if (absPower >= maxPower) {
+        return `${minDuration}s`;
+      }
+      if (absPower > 0) {
+        return `${maxDuration - (maxDuration - minDuration) * (absPower / maxPower)}s`;
+      }
+      return `${maxDuration}s`;
+    },
+    flowDuration(component) {
+      const powerById = {
+        grid: this.gridPower.value,
+        home: this.homePower.value,
+        pv: this.pvPower.value,
+        battery: this.batteryPower.value,
+        "charge-point-1": this.chargePoint1Power.value,
+        "vehicle-1": this.chargePoint1Power.value,
+        "charge-point-2": this.chargePoint2Power.value,
+        "vehicle-2": this.chargePoint2Power.value,
+        "charge-point-3": this.chargePoint3Power.value,
+        "vehicle-3": this.chargePoint3Power.value,
+        "charge-point-sum": this.chargePointSumPower.value,
+      };
+      return this.calcDuration(powerById[component.id], this.maxSystemPower);
+    },
     calcSvgElementBoundingBox(elementId) {
       let element = document.getElementById(elementId);
       if (element == undefined) {
@@ -738,22 +798,31 @@ export default {
             style="display: inline"
           >
             <!-- flow lines -->
-            <path
+            <g
               v-for="component in svgComponents"
               :key="component.id"
-              :class="[
-                component.class.base,
-                { animated: component.class.animated },
-                { animatedReverse: component.class.animatedReverse },
-              ]"
-              :d="
-                component.class.base !== 'vehicle'
-                  ? `M ${calcFlowLineAnchorX(component.position.column)}, ` +
-                    `${calcRowY(component.position.row)} ${calcColumnX(1)}, ${calcRowY(1)}`
-                  : `M ${calcFlowLineAnchorX(component.position.column)}, ` +
-                    `${calcRowY(component.position.row)} ${calcFlowLineAnchorX(component.position.column)}, ${calcRowY(component.position.row - 1)}`
-              "
-            />
+            >
+              <!-- static background line -->
+              <path
+                class="flow-base"
+                :class="[
+                  { animated: component.class.animated },
+                  { animatedReverse: component.class.animatedReverse },
+                ]"
+                :d="calcFlowPath(component)"
+              />
+              <!-- animated dotted overlay -->
+              <path
+                class="flow-animated"
+                :class="[
+                  component.class.base,
+                  { animated: component.class.animated },
+                  { animatedReverse: component.class.animatedReverse },
+                ]"
+                :style="{ animationDuration: flowDuration(component) }"
+                :d="calcFlowPath(component)"
+              />
+            </g>
           </g>
 
           <g
@@ -939,55 +1008,71 @@ export default {
   align-items: center;
 }
 
-path {
+.flow-base {
   fill: none;
-  fill-rule: evenodd;
   stroke: rgb(64, 64, 64);
   stroke-width: 0.75;
-  stroke-linecap: butt;
-  stroke-linejoin: miter;
-  stroke-miterlimit: 4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
   transition: stroke 0.5s;
 }
 
-path.animated {
-  stroke: white;
-  stroke-dasharray: 5;
-  animation: dash 1s linear infinite;
+/* overlay stays hidden until energy is flowing */
+.flow-animated {
+  fill: none;
+  stroke: none;
 }
 
-path.animatedReverse {
-  stroke: white;
-  stroke-dasharray: 5;
-  animation: dashReverse 1s linear infinite;
+/* animated energy flow: dots traveling along the line */
+.flow-animated.animated,
+.flow-animated.animatedReverse {
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-dasharray: 2 50;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+.flow-animated.animated {
+  animation-name: energyFlow;
+}
+
+.flow-animated.animatedReverse {
+  animation-name: energyFlowReverse;
 }
 
 path.animated.grid {
-  stroke: var(--color--danger);
+  color: var(--color--danger);
 }
 
 path.animatedReverse.grid {
-  stroke: var(--color--success);
+  color: var(--color--success);
+}
+
+path.animated.home,
+path.animatedReverse.home {
+  color: white;
 }
 
 path.animated.pv,
 path.animatedReverse.pv {
-  stroke: var(--color--success);
+  color: var(--color--success);
 }
 
 path.animated.battery,
 path.animatedReverse.battery {
-  stroke: var(--color--warning);
+  color: var(--color--warning);
 }
 
 path.animated.charge-point,
 path.animatedReverse.charge-point {
-  stroke: var(--color--primary);
+  color: var(--color--primary);
 }
 
 path.animated.vehicle,
 path.animatedReverse.vehicle {
-  stroke: var(--color--teal);
+  color: var(--color--teal);
 }
 
 circle {
@@ -999,15 +1084,21 @@ rect {
   fill: #3b3b3d;
 }
 
-@keyframes dash {
-  to {
-    stroke-dashoffset: -20;
+@keyframes energyFlow {
+  0% {
+    stroke-dashoffset: 0;
+  }
+  100% {
+    stroke-dashoffset: -200;
   }
 }
 
-@keyframes dashReverse {
-  to {
-    stroke-dashoffset: 20;
+@keyframes energyFlowReverse {
+  0% {
+    stroke-dashoffset: -200;
+  }
+  100% {
+    stroke-dashoffset: 0;
   }
 }
 
