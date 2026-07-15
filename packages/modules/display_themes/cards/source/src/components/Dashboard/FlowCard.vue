@@ -10,6 +10,7 @@ import PvIcon from "../../assets/icons/owbPV.svg?component";
 import HouseIcon from "../../assets/icons/owbHouse.svg?component";
 import VehicleIcon from "../../assets/icons/owbVehicle.svg?component";
 import ChargePointIcon from "../../assets/icons/owbChargePoint.svg?component";
+import ConsumerIcon from "../../assets/icons/owbConsumer.svg?component";
 
 export default {
   name: "DashboardFlowCard",
@@ -85,6 +86,12 @@ export default {
     },
     showHomePower() {
       return this.homePower.value !== undefined;
+    },
+    consumerPower() {
+      return this.mqttStore.getConsumerSumPower("object");
+    },
+    showConsumerPower() {
+      return this.mqttStore.getConsumerIds.length > 0;
     },
     batteryPower() {
       return this.mqttStore.getBatteryPower("object");
@@ -257,6 +264,9 @@ export default {
     homeProduction() {
       return this.homePower.value < 0;
     },
+    consumerConsuming() {
+      return this.consumerPower.value > 0;
+    },
     pvProduction() {
       return this.pvPower.value < 0;
     },
@@ -310,6 +320,7 @@ export default {
       const powerValues = [
         Math.abs(Number(this.gridPower.value)),
         Math.abs(Number(this.homePower.value)),
+        Math.abs(Number(this.consumerPower.value)),
         Math.abs(Number(this.pvPower.value)),
         Math.abs(Number(this.batteryPower.value)),
         Math.abs(Number(this.chargePoint1Power.value)),
@@ -376,6 +387,25 @@ export default {
           label: ["Haus", this.absoluteValue(this.homePower).textValue],
           iconComponent: HouseIcon,
           iconColor: "var(--color--light)",
+        });
+      }
+      // add consumer sum component
+      if (this.showConsumerPower) {
+        components.push({
+          id: "consumer",
+          class: {
+            base: "consumer",
+            valueLabel: "",
+            animated: false,
+            animatedReverse: this.consumerConsuming,
+          },
+          position: {
+            row: 0,
+            column: 1,
+          },
+          label: ["Verbraucher", this.absoluteValue(this.consumerPower).textValue],
+          iconComponent: ConsumerIcon,
+          iconColor: "var(--color--consumer)",
         });
       }
       // add pv sum component
@@ -717,6 +747,7 @@ export default {
       const powerById = {
         grid: this.gridPower.value,
         home: this.homePower.value,
+        consumer: this.consumerPower.value,
         pv: this.pvPower.value,
         battery: this.batteryPower.value,
         "charge-point-1": this.chargePoint1Power.value,
@@ -1067,6 +1098,10 @@ export default {
 
 .flow-dot.home {
   color: white;
+}
+
+.flow-dot.consumer {
+  color: var(--color--consumer);
 }
 
 .flow-dot.pv {
