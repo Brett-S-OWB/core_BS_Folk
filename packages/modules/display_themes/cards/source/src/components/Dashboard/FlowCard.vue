@@ -39,7 +39,6 @@ export default {
       modalChargeModeSettingsVisible: false,
       modalBatteryModeSettingsVisible: false,
       modalChargePointId: 0,
-      flowDotCount: 1,
       flowDotLength: 4.5,
       flowDotWidth: 2,
     };
@@ -730,7 +729,7 @@ export default {
       };
       return this.calcDuration(powerById[component.id], this.maxSystemPower);
     },
-    flowDotStyle(component, index) {
+    flowDotStyle(component) {
       const { x1, y1, x2, y2 } = this.calcFlowEndpoints(component);
       const duration = this.flowDurationSeconds(component);
       // orient the oval streak along the direction of travel
@@ -742,7 +741,6 @@ export default {
         "--flow-y2": `${y2}px`,
         "--flow-angle": `${angle}deg`,
         animationDuration: `${duration}s`,
-        animationDelay: `-${(duration * index) / this.flowDotCount}s`,
       };
     },
     calcSvgElementBoundingBox(elementId) {
@@ -828,30 +826,25 @@ export default {
                 class="flow-base"
                 :d="calcFlowPath(component)"
               />
-              <!-- animated energy dots -->
-              <template
+              <!-- animated energy dot -->
+              <rect
                 v-if="
                   component.class.animated || component.class.animatedReverse
                 "
-              >
-                <rect
-                  v-for="dot in flowDotCount"
-                  :key="dot"
-                  class="flow-dot"
-                  :class="[
-                    component.class.base,
-                    { animated: component.class.animated },
-                    { animatedReverse: component.class.animatedReverse },
-                  ]"
-                  :x="-flowDotLength / 2"
-                  :y="-flowDotWidth / 2"
-                  :width="flowDotLength"
-                  :height="flowDotWidth"
-                  :rx="flowDotWidth / 2"
-                  :ry="flowDotWidth / 2"
-                  :style="flowDotStyle(component, dot - 1)"
-                />
-              </template>
+                class="flow-dot"
+                :class="[
+                  component.class.base,
+                  { animated: component.class.animated },
+                  { animatedReverse: component.class.animatedReverse },
+                ]"
+                :x="-flowDotLength / 2"
+                :y="-flowDotWidth / 2"
+                :width="flowDotLength"
+                :height="flowDotWidth"
+                :rx="flowDotWidth / 2"
+                :ry="flowDotWidth / 2"
+                :style="flowDotStyle(component)"
+              />
             </g>
           </g>
 
