@@ -39,6 +39,9 @@ export default {
       modalChargeModeSettingsVisible: false,
       modalBatteryModeSettingsVisible: false,
       modalChargePointId: 0,
+      flowDotCount: 1,
+      flowDotLength: 4.5,
+      flowDotWidth: 2,
     };
   },
   computed: {
@@ -303,6 +306,27 @@ export default {
         default:
           return "---";
       }
+    },
+    maxSystemPower() {
+      const powerValues = [
+        Math.abs(Number(this.gridPower.value)),
+        Math.abs(Number(this.homePower.value)),
+        Math.abs(Number(this.pvPower.value)),
+        Math.abs(Number(this.batteryPower.value)),
+        Math.abs(Number(this.chargePoint1Power.value)),
+        Math.abs(Number(this.chargePoint2Power.value)),
+        Math.abs(Number(this.chargePoint3Power.value)),
+        ...(this.connectedChargePoints.length > 3
+          ? [Math.abs(Number(this.chargePointSumPower.value))]
+          : []),
+      ];
+      const filteredPowerValues = powerValues.filter(
+        (value) => !isNaN(value) && value !== undefined && value !== null,
+      );
+      if (filteredPowerValues.length === 0) {
+        return 1000;
+      }
+      return Math.max(...filteredPowerValues);
     },
     svgComponents() {
       var components = [];
@@ -664,6 +688,63 @@ export default {
       }
       return columnX;
     },
+    calcFlowEndpoints(component) {
+      // straight-line start/end for a component's flow line
+      const x1 = this.calcFlowLineAnchorX(component.position.column);
+      const y1 = this.calcRowY(component.position.row);
+      if (component.class.base === "vehicle") {
+        return { x1, y1, x2: x1, y2: this.calcRowY(component.position.row - 1) };
+      }
+      return { x1, y1, x2: this.calcColumnX(1), y2: this.calcRowY(1) };
+    },
+    calcFlowPath(component) {
+      const { x1, y1, x2, y2 } = this.calcFlowEndpoints(component);
+      return `M ${x1}, ${y1} ${x2}, ${y2}`;
+    },
+    calcDuration(power, maxPower) {
+      // faster flow for higher power
+      const minDuration = 0.8;
+      const maxDuration = 4;
+      const absPower = Math.abs(power || 0);
+      if (absPower >= maxPower) {
+        return minDuration;
+      }
+      if (absPower > 0) {
+        return maxDuration - (maxDuration - minDuration) * (absPower / maxPower);
+      }
+      return maxDuration;
+    },
+    flowDurationSeconds(component) {
+      const powerById = {
+        grid: this.gridPower.value,
+        home: this.homePower.value,
+        pv: this.pvPower.value,
+        battery: this.batteryPower.value,
+        "charge-point-1": this.chargePoint1Power.value,
+        "vehicle-1": this.chargePoint1Power.value,
+        "charge-point-2": this.chargePoint2Power.value,
+        "vehicle-2": this.chargePoint2Power.value,
+        "charge-point-3": this.chargePoint3Power.value,
+        "vehicle-3": this.chargePoint3Power.value,
+        "charge-point-sum": this.chargePointSumPower.value,
+      };
+      return this.calcDuration(powerById[component.id], this.maxSystemPower);
+    },
+    flowDotStyle(component, index) {
+      const { x1, y1, x2, y2 } = this.calcFlowEndpoints(component);
+      const duration = this.flowDurationSeconds(component);
+      // orient the oval streak along the direction of travel
+      const angle = (Math.atan2(y2 - y1, x2 - x1) * 180) / Math.PI;
+      return {
+        "--flow-x1": `${x1}px`,
+        "--flow-y1": `${y1}px`,
+        "--flow-x2": `${x2}px`,
+        "--flow-y2": `${y2}px`,
+        "--flow-angle": `${angle}deg`,
+        animationDuration: `${duration}s`,
+        animationDelay: `-${(duration * index) / this.flowDotCount}s`,
+      };
+    },
     calcSvgElementBoundingBox(elementId) {
       let element = document.getElementById(elementId);
       if (element == undefined) {
@@ -738,22 +819,40 @@ export default {
             style="display: inline"
           >
             <!-- flow lines -->
-            <path
+            <g
               v-for="component in svgComponents"
               :key="component.id"
-              :class="[
-                component.class.base,
-                { animated: component.class.animated },
-                { animatedReverse: component.class.animatedReverse },
-              ]"
-              :d="
-                component.class.base !== 'vehicle'
-                  ? `M ${calcFlowLineAnchorX(component.position.column)}, ` +
-                    `${calcRowY(component.position.row)} ${calcColumnX(1)}, ${calcRowY(1)}`
-                  : `M ${calcFlowLineAnchorX(component.position.column)}, ` +
-                    `${calcRowY(component.position.row)} ${calcFlowLineAnchorX(component.position.column)}, ${calcRowY(component.position.row - 1)}`
-              "
-            />
+            >
+              <!-- static background line -->
+              <path
+                class="flow-base"
+                :d="calcFlowPath(component)"
+              />
+              <!-- animated energy dots -->
+              <template
+                v-if="
+                  component.class.animated || component.class.animatedReverse
+                "
+              >
+                <rect
+                  v-for="dot in flowDotCount"
+                  :key="dot"
+                  class="flow-dot"
+                  :class="[
+                    component.class.base,
+                    { animated: component.class.animated },
+                    { animatedReverse: component.class.animatedReverse },
+                  ]"
+                  :x="-flowDotLength / 2"
+                  :y="-flowDotWidth / 2"
+                  :width="flowDotLength"
+                  :height="flowDotWidth"
+                  :rx="flowDotWidth / 2"
+                  :ry="flowDotWidth / 2"
+                  :style="flowDotStyle(component, dot - 1)"
+                />
+              </template>
+            </g>
           </g>
 
           <g
@@ -939,55 +1038,58 @@ export default {
   align-items: center;
 }
 
-path {
+.flow-base {
   fill: none;
-  fill-rule: evenodd;
   stroke: rgb(64, 64, 64);
   stroke-width: 0.75;
-  stroke-linecap: butt;
-  stroke-linejoin: miter;
-  stroke-miterlimit: 4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
   transition: stroke 0.5s;
 }
 
-path.animated {
-  stroke: white;
-  stroke-dasharray: 5;
-  animation: dash 1s linear infinite;
+/* energy dots travel the flow line via a composited transform, which the
+   GPU moves without repainting each frame */
+.flow-dot {
+  fill: currentColor;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  pointer-events: none;
 }
 
-path.animatedReverse {
-  stroke: white;
-  stroke-dasharray: 5;
-  animation: dashReverse 1s linear infinite;
+.flow-dot.animated {
+  animation-name: flowForward;
 }
 
-path.animated.grid {
-  stroke: var(--color--danger);
+.flow-dot.animatedReverse {
+  animation-name: flowReverse;
 }
 
-path.animatedReverse.grid {
-  stroke: var(--color--success);
+.flow-dot.animated.grid {
+  color: var(--color--danger);
 }
 
-path.animated.pv,
-path.animatedReverse.pv {
-  stroke: var(--color--success);
+.flow-dot.animatedReverse.grid {
+  color: var(--color--success);
 }
 
-path.animated.battery,
-path.animatedReverse.battery {
-  stroke: var(--color--warning);
+.flow-dot.home {
+  color: white;
 }
 
-path.animated.charge-point,
-path.animatedReverse.charge-point {
-  stroke: var(--color--primary);
+.flow-dot.pv {
+  color: var(--color--success);
 }
 
-path.animated.vehicle,
-path.animatedReverse.vehicle {
-  stroke: var(--color--teal);
+.flow-dot.battery {
+  color: var(--color--warning);
+}
+
+.flow-dot.charge-point {
+  color: var(--color--primary);
+}
+
+.flow-dot.vehicle {
+  color: var(--color--teal);
 }
 
 circle {
@@ -999,15 +1101,25 @@ rect {
   fill: #3b3b3d;
 }
 
-@keyframes dash {
+@keyframes flowForward {
+  from {
+    transform: translate(var(--flow-x1), var(--flow-y1))
+      rotate(var(--flow-angle));
+  }
   to {
-    stroke-dashoffset: -20;
+    transform: translate(var(--flow-x2), var(--flow-y2))
+      rotate(var(--flow-angle));
   }
 }
 
-@keyframes dashReverse {
+@keyframes flowReverse {
+  from {
+    transform: translate(var(--flow-x2), var(--flow-y2))
+      rotate(var(--flow-angle));
+  }
   to {
-    stroke-dashoffset: 20;
+    transform: translate(var(--flow-x1), var(--flow-y1))
+      rotate(var(--flow-angle));
   }
 }
 
