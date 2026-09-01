@@ -26,6 +26,11 @@
     <!-- full view table body slots -->
     <template #body-cell-name="slotProps">
       <div class="row items-center no-wrap">
+        <ChargePointFaultIcon
+          dot
+          :charge-point-id="slotProps.row.id"
+          class="q-mr-xs"
+        />
         <div class="ellipsis" :title="slotProps.row.name">
           {{ slotProps.row.name }}
         </div>
@@ -38,6 +43,10 @@
     </template>
     <template #body-cell-plugged="slotProps">
       <ChargePointStateIcon :charge-point-id="slotProps.row.id" />
+    </template>
+
+    <template #body-cell-faultState="slotProps">
+      <ChargePointFaultIcon :charge-point-id="slotProps.row.id" />
     </template>
 
     <template #body-cell-chargeMode="slotProps">
@@ -71,8 +80,15 @@
     <!-- compact view charge point name and vehicle name displayed in one field -->
     <template #body-cell-nameAndVehicle="slotProps">
       <div>
-        <div class="ellipsis" :title="slotProps.row.name">
-          {{ slotProps.row.name }}
+        <div class="row items-center no-wrap">
+          <ChargePointFaultIcon
+            dot
+            :charge-point-id="slotProps.row.id"
+            class="q-mr-xs"
+          />
+          <div class="ellipsis" :title="slotProps.row.name">
+            {{ slotProps.row.name }}
+          </div>
         </div>
         <div class="ellipsis text-caption" :title="slotProps.row.vehicle">
           {{ slotProps.row.vehicle }}
@@ -143,6 +159,7 @@ import ChargePointStateIcon from 'src/components/ChargePointStateIcon.vue';
 import ChargePointMode from './ChargePointMode.vue';
 import ChargePointTimeCharging from './ChargePointTimeCharging.vue';
 import ChargePointPowerData from './ChargePointPowerData.vue';
+import ChargePointFaultIcon from './ChargePointFaultIcon.vue';
 import {
   ColumnConfiguration,
   ChargePointRow,
@@ -189,6 +206,8 @@ const tableRowData = computed<(id: number) => ChargePointRow>(() => {
     // typecasting necessary as chargePointChargingCurrent has a union type in store and needs to be narrowed to string
     const current = mqttStore.chargePointChargingCurrent(id) as string;
     const powerColumn = '';
+    const faultState = mqttStore.chargePointFaultState(id);
+    const faultMessage = mqttStore.chargePointFaultMessage(id) ?? '';
     const color =
       mqttStore.chargePointColor(id) || 'var(--q-charge-point-stroke)';
     return {
@@ -204,6 +223,8 @@ const tableRowData = computed<(id: number) => ChargePointRow>(() => {
       current,
       powerColumn,
       charged,
+      faultState,
+      faultMessage,
       color,
     };
   };
@@ -213,6 +234,12 @@ const columnConfig: ColumnConfiguration[] = [
   { field: 'name', label: 'Ladepunkt', shrink: true },
   { field: 'vehicle', label: 'Fahrzeug', autoWidth: true },
   { field: 'plugged', label: 'Status', align: 'center', autoWidth: true },
+  {
+    field: 'faultState',
+    label: 'Meldung',
+    align: 'center',
+    autoWidth: true,
+  },
   { field: 'chargeMode', label: 'Lademodus', autoWidth: true },
   {
     field: 'timeCharging',
