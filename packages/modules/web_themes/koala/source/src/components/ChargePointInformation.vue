@@ -27,13 +27,16 @@
     <template #body-cell-name="slotProps">
       <div class="row items-center no-wrap">
         <ChargePointFaultIcon
-          dot
+          v-if="faultPresent"
           :charge-point-id="slotProps.row.id"
           class="q-mr-xs"
         />
-        <div class="ellipsis" :title="slotProps.row.name">
+        <div class="col ellipsis" :title="slotProps.row.name">
           {{ slotProps.row.name }}
         </div>
+        <q-tooltip v-if="slotProps.row.faultState > 0">
+          {{ slotProps.row.faultMessage }}
+        </q-tooltip>
       </div>
     </template>
     <template #body-cell-vehicle="slotProps">
@@ -43,10 +46,6 @@
     </template>
     <template #body-cell-plugged="slotProps">
       <ChargePointStateIcon :charge-point-id="slotProps.row.id" />
-    </template>
-
-    <template #body-cell-faultState="slotProps">
-      <ChargePointFaultIcon :charge-point-id="slotProps.row.id" />
     </template>
 
     <template #body-cell-chargeMode="slotProps">
@@ -79,20 +78,23 @@
     <!-- compact view table body slots -->
     <!-- compact view charge point name and vehicle name displayed in one field -->
     <template #body-cell-nameAndVehicle="slotProps">
-      <div>
-        <div class="row items-center no-wrap">
-          <ChargePointFaultIcon
-            dot
-            :charge-point-id="slotProps.row.id"
-            class="q-mr-xs"
-          />
+      <div class="row items-center no-wrap">
+        <ChargePointFaultIcon
+          v-if="faultPresent"
+          :charge-point-id="slotProps.row.id"
+          class="q-mr-xs"
+        />
+        <div class="col">
           <div class="ellipsis" :title="slotProps.row.name">
             {{ slotProps.row.name }}
           </div>
+          <div class="ellipsis text-caption" :title="slotProps.row.vehicle">
+            {{ slotProps.row.vehicle }}
+          </div>
         </div>
-        <div class="ellipsis text-caption" :title="slotProps.row.vehicle">
-          {{ slotProps.row.vehicle }}
-        </div>
+        <q-tooltip v-if="slotProps.row.faultState > 0">
+          {{ slotProps.row.faultMessage }}
+        </q-tooltip>
       </div>
     </template>
 
@@ -174,6 +176,10 @@ const cardViewBreakpoint = computed(
 const searchInputVisible = computed(
   () => mqttStore.themeConfiguration?.chargePoint_table_search_input_field,
 );
+
+const faultPresent = computed(() =>
+  chargePointIds.value.some((id) => mqttStore.chargePointFaultState(id) > 0),
+);
 const isSmallScreen = computed(() => Screen.lt.sm);
 const compactTable = computed(() => Screen.lt.md);
 const selectedChargePointId = ref<number | null>(null);
@@ -234,12 +240,6 @@ const columnConfig: ColumnConfiguration[] = [
   { field: 'name', label: 'Ladepunkt', shrink: true },
   { field: 'vehicle', label: 'Fahrzeug', autoWidth: true },
   { field: 'plugged', label: 'Status', align: 'center', autoWidth: true },
-  {
-    field: 'faultState',
-    label: 'Meldung',
-    align: 'center',
-    autoWidth: true,
-  },
   { field: 'chargeMode', label: 'Lademodus', autoWidth: true },
   {
     field: 'timeCharging',
