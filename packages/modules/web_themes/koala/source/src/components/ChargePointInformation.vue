@@ -31,16 +31,16 @@
           :charge-point-id="slotProps.row.id"
           class="q-mr-xs"
         />
-        <div class="col ellipsis" :title="slotProps.row.name">
+        <div class="col ellipsis" @mouseenter="titleIfTruncated">
           {{ slotProps.row.name }}
         </div>
-        <q-tooltip v-if="slotProps.row.faultState > 0">
+        <q-tooltip v-if="slotProps.row.faultState > 0 && tooltipsEnabled">
           {{ slotProps.row.faultMessage }}
         </q-tooltip>
       </div>
     </template>
     <template #body-cell-vehicle="slotProps">
-      <div class="ellipsis" :title="slotProps.row.vehicle">
+      <div class="ellipsis" @mouseenter="titleIfTruncated">
         {{ slotProps.row.vehicle }}
       </div>
     </template>
@@ -85,14 +85,14 @@
           class="q-mr-xs"
         />
         <div class="col">
-          <div class="ellipsis" :title="slotProps.row.name">
+          <div class="ellipsis" @mouseenter="titleIfTruncated">
             {{ slotProps.row.name }}
           </div>
-          <div class="ellipsis text-caption" :title="slotProps.row.vehicle">
+          <div class="ellipsis text-caption" @mouseenter="titleIfTruncated">
             {{ slotProps.row.vehicle }}
           </div>
         </div>
-        <q-tooltip v-if="slotProps.row.faultState > 0">
+        <q-tooltip v-if="slotProps.row.faultState > 0 && tooltipsEnabled">
           {{ slotProps.row.faultMessage }}
         </q-tooltip>
       </div>
@@ -151,7 +151,7 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue';
-import { Screen } from 'quasar';
+import { Screen, useQuasar } from 'quasar';
 import { useMqttStore } from 'src/stores/mqtt-store';
 import { useChargeModes } from 'src/composables/useChargeModes';
 import BaseCarousel from 'src/components/BaseCarousel.vue';
@@ -166,6 +166,10 @@ import {
   ColumnConfiguration,
   ChargePointRow,
 } from 'src/components/models/table-model';
+
+const $q = useQuasar();
+
+const tooltipsEnabled = !$q.platform.is.mobile;
 
 const mqttStore = useMqttStore();
 const { chargeModes } = useChargeModes();
@@ -276,6 +280,20 @@ const tableColumnsCompact = columnConfigCompact.filter(
 const expansionColumnsCompact = columnConfigCompact.filter(
   (column) => column.expandField,
 );
+
+// the browser tooltip is only set if the text is really cut off by the
+// ellipsis, otherwise it would pop up next to the fault message tooltip
+// without adding any information
+const titleIfTruncated = (event: MouseEvent) => {
+  const element = event.currentTarget as HTMLElement;
+  const text = element.textContent?.trim() ?? '';
+  // one pixel tolerance, scrollWidth and clientWidth are rounded values
+  if (text && element.scrollWidth - element.clientWidth > 1) {
+    element.title = text;
+  } else {
+    element.removeAttribute('title');
+  }
+};
 
 const onRowClick = (row: ChargePointRow) => {
   selectedChargePointId.value = row.id;
