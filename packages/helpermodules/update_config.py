@@ -33,6 +33,7 @@ from helpermodules.hardware_configuration import (
 from helpermodules.measurement_logging.process_log import get_default_charge_log_columns, get_totals
 from helpermodules.measurement_logging.write_log import get_names
 from helpermodules.messaging import MessageType, pub_system_message
+from helpermodules.mosquitto_dynsec.role_handler import add_acl_role, remove_acl_role
 from helpermodules.pub import Pub
 from helpermodules.utils.json_file_handler import write_and_check
 from helpermodules.utils.run_command import run_command
@@ -62,7 +63,7 @@ NO_MODULE = {"type": None, "configuration": {}}
 
 class UpdateConfig:
 
-    DATASTORE_VERSION = 152
+    DATASTORE_VERSION = 153
 
     FILE_OPERATION_VERSION = 0
 
@@ -4050,7 +4051,27 @@ class UpdateConfig:
             self.__update_topic(hierarchy_topic, _counter_all.data.get.hierarchy)
         self._append_datastore_version(151)
 
-    def upgrade_datastore_152(self) -> None:
+    def upgrade_datastore_152(self):
+        user_management_active = decode_payload(
+            self.all_received_topics.get("openWB/system/security/user_management_active")
+        )
+        if user_management_active is True:
+            for topic, payload in self.all_received_topics.items():
+                match = re.search(r"^openWB/consumer/(\d+)/module$", topic)
+                if match is None:
+                    continue
+                consumer_id = int(match.group(1))
+                consumer_module = decode_payload(payload)
+                consumer_type = consumer_module.get("type") if isinstance(consumer_module, dict) else None
+
+                add_acl_role("consumer-<id>-access", consumer_id)
+                if consumer_type == "mqtt":
+                    add_acl_role("consumer-<id>-write-access", consumer_id)
+                else:
+                    remove_acl_role("consumer-<id>-write-access", consumer_id)
+        self._append_datastore_version(152)
+
+    def upgrade_datastore_153(self) -> None:
         def upgrade(topic: str, payload) -> Optional[dict]:
             if re.search(r"^openWB/consumer/[0-9]+/usage$", topic) is not None:
                 usage = decode_payload(payload)
@@ -4080,4 +4101,4 @@ class UpdateConfig:
                     return {topic: asdict(usage)}
             return None
         self._loop_all_received_topics(upgrade)
-        self._append_datastore_version(152)
+        self._append_datastore_version(153)
