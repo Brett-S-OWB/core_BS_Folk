@@ -10,7 +10,13 @@
       </q-toolbar>
     </q-header>
 
-    <q-drawer v-model="drawer" side="left" overlay elevated :breakpoint="500">
+    <q-drawer
+      v-model="drawer"
+      side="left"
+      :overlay="!localDataStore.desktopOverview || $q.screen.width < 1024"
+      elevated
+      :breakpoint="localDataStore.desktopOverview ? 1023 : 500"
+    >
       <!-- drawer content -->
       <q-scroll-area class="fit" :horizontal-thumb-style="{ opacity: '0' }">
         <q-list padding>
@@ -122,13 +128,95 @@
               </q-btn-group>
             </q-item-section>
           </q-item>
+          <q-separator />
+          <q-item>
+            <q-item-section>
+              <q-toggle
+                v-model="localDataStore.desktopOverview"
+                label="Desktop-Übersicht"
+              />
+            </q-item-section>
+          </q-item>
+          <div v-if="localDataStore.desktopOverview" class="q-px-md q-pb-md">
+            <q-item-label caption class="q-mb-sm"
+              >Gemeinsam anzeigen</q-item-label
+            >
+            <div v-for="chart in availableCharts" :key="chart.name">
+              <q-checkbox
+                v-model="localDataStore.desktopSlides"
+                :val="chart.name"
+                :label="chart.label"
+                class="full-width"
+              />
+              <q-select
+                v-if="
+                  chart.name === 'history_chart' &&
+                  localDataStore.desktopSlides.includes(chart.name)
+                "
+                v-model="localDataStore.historyChartHeight"
+                :options="historyChartHeights"
+                :display-value="`${localDataStore.historyChartHeight} px`"
+                label="Verlaufshöhe"
+                dense
+                outlined
+                class="q-ml-sm q-mb-sm"
+              />
+            </div>
+            <q-btn
+              v-if="
+                availableCharts.some(
+                  (chart) => !localDataStore.desktopSlides.includes(chart.name),
+                )
+              "
+              flat
+              dense
+              color="primary"
+              icon="view_carousel"
+              label="Weitere Ansichten"
+              class="q-mt-sm"
+              @click="openAdditionalCharts"
+            />
+            <q-toggle
+              v-model="localDataStore.deviceOverview"
+              label="Geräte-Dashboard"
+              class="q-mt-sm"
+            />
+            <div v-if="localDataStore.deviceOverview">
+              <q-select
+                v-model="localDataStore.deviceLayout"
+                :options="[
+                  { label: 'Kachelraster', value: 'grid' },
+                  { label: 'Bereiche untereinander', value: 'sections' },
+                ]"
+                emit-value
+                map-options
+                label="Anordnung"
+                dense
+                outlined
+                class="q-my-sm"
+              />
+              <q-checkbox
+                v-for="section in availableDeviceSections"
+                :key="section.name"
+                v-model="localDataStore.dashboardDeviceSections"
+                :val="section.name"
+                :label="section.label"
+                class="full-width"
+              />
+            </div>
+          </div>
         </q-list>
       </q-scroll-area>
     </q-drawer>
 
     <!-- Page container that takes the remaining height -->
-    <q-page-container class="column flex centered-container">
-      <router-view />
+    <q-page-container class="column flex">
+      <div
+        class="centered-container"
+        :class="{ 'dashboard-wide': localDataStore.desktopOverview }"
+      >
+        <router-view />
+      </div>
     </q-page-container>
   </q-layout>
 </template>
@@ -138,7 +226,16 @@ import { ref, computed, onMounted } from 'vue';
 import UserIndicator from 'src/components/UserIndicator.vue';
 import ConnectionIndicator from 'src/components/ConnectionIndicator.vue';
 import { useMqttStore } from 'src/stores/mqtt-store';
+import {
+  useLocalDataStore,
+  historyChartHeights,
+} from 'src/stores/localData-store';
+import { useTopCharts } from 'src/components/charts/topCharts';
+import { useDeviceSections } from 'src/components/deviceSections';
 const mqttStore = useMqttStore();
+const localDataStore = useLocalDataStore();
+const availableCharts = useTopCharts();
+const availableDeviceSections = useDeviceSections();
 
 import { useQuasar } from 'quasar';
 const $q = useQuasar();
@@ -153,6 +250,10 @@ const accessChargeLogAllowed = computed(() => mqttStore.accessChargeLogAllowed);
 const accessChartAllowed = computed(() => mqttStore.accessChartAllowed);
 
 const drawer = ref(false);
+const openAdditionalCharts = () => {
+  drawer.value = false;
+  localDataStore.additionalChartsOpen = true;
+};
 const themeMode = ref('auto');
 
 const setTheme = (mode: 'light' | 'dark' | 'auto') => {
@@ -180,8 +281,13 @@ onMounted(() => {
 
 <style scoped lang="scss">
 .centered-container {
+  width: 100%;
+  min-width: 0;
   max-width: $breakpoint-lg-min;
   margin-left: auto;
   margin-right: auto;
+}
+.dashboard-wide {
+  max-width: none;
 }
 </style>

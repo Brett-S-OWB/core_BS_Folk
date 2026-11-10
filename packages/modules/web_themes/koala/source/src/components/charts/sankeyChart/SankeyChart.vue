@@ -59,7 +59,7 @@ defineOptions({ name: 'SankeyChart' });
 
 // The legend is only shown in compact mode, where node names are hidden.
 // When chart has three columns.
-defineProps<{ showLegend?: boolean }>();
+const props = defineProps<{ showLegend?: boolean; dashboard?: boolean }>();
 
 const $q = useQuasar();
 const { allocation, compact, colorForNode, labelColor } = useSankeyData();
@@ -166,12 +166,13 @@ const chartData = computed<ChartData<'sankey'>>(() => {
             (ctx.raw as SankeyDataPoint | undefined)?.to ?? '',
             ctx.dataIndex,
           ),
-        colorMode: 'gradient',
+        colorMode: 'from',
         borderWidth: 0,
         color: textColor,
         nodeLabels: { color: textColor, display: !compact.value },
-        nodeWidth: 16,
-        nodePadding: 12,
+        nodeWidth: props.dashboard ? 8 : 16,
+        nodePadding: props.dashboard ? 20 : 12,
+        alpha: props.dashboard ? 0.3 : 0.5,
       },
     ],
   };
@@ -196,6 +197,9 @@ const chartOptions = computed<ChartOptions<'sankey'>>(() => ({
   responsive: true,
   maintainAspectRatio: false,
   animation: false,
+  layout: props.dashboard
+    ? { padding: { top: 16, bottom: 16, left: 8, right: 8 } }
+    : undefined,
   plugins: {
     tooltip: {
       displayColors: false,

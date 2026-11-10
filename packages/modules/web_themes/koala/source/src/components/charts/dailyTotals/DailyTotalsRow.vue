@@ -1,5 +1,8 @@
 <template>
-  <div class="component-container">
+  <div
+    class="component-container"
+    :class="{ 'totals-hidden': hideDailyTotals }"
+  >
     <!-- Icon -->
     <div class="col-icon">
       <component
@@ -18,7 +21,10 @@
           </div>
         </template>
         <template v-else>
-          {{ props.item.title }}
+          <div class="ellipsis-wrapper">
+            {{ props.item.title }}
+            <q-tooltip>{{ props.item.title }}</q-tooltip>
+          </div>
         </template>
         <!-- Expansion chevron icon -->
         <q-icon
@@ -54,7 +60,7 @@
     <div class="col-flex"></div>
 
     <!-- Right label -->
-    <div class="col-right-label text-weight-bold">
+    <div v-if="!hideDailyTotals" class="col-right-label text-weight-bold">
       <slot name="right-label" :item="props.item">
         <template
           v-if="
@@ -70,7 +76,7 @@
       </slot>
     </div>
     <!-- Right value -->
-    <div class="col-right-value">
+    <div v-if="!hideDailyTotals" class="col-right-value">
       <slot name="right-value" :item="props.item">
         <template
           v-if="
@@ -111,6 +117,7 @@ const props = defineProps<{
   socValueVisible: boolean;
   secondaryComponentsConfigured?: boolean;
   rowExpanded?: boolean;
+  hideDailyTotals?: boolean;
 }>();
 
 const rowHeightCssValue = computed(() => `${props.rowHeight}px`);
