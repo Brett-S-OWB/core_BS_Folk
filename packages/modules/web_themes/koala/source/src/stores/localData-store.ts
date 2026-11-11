@@ -11,80 +11,87 @@ export const useLocalDataStore = defineStore('localData', () => {
   const $q = useQuasar();
 
   // Display preferences belong to this browser, not the openWB configuration.
-  const savedList = (key: string, fallback: string[]): string[] => {
+  const persistedRef = <T>(
+    key: string,
+    fallback: T,
+    parse: (value: string) => T | undefined,
+  ) => {
+    let initialValue = fallback;
     try {
-      const value: unknown = JSON.parse(localStorage.getItem(key) || 'null');
-      return Array.isArray(value) &&
-        value.every((item) => typeof item === 'string')
-        ? value
-        : fallback;
+      const saved = localStorage.getItem(key);
+      if (saved !== null) {
+        initialValue = parse(saved) ?? fallback;
+      }
     } catch {
-      return fallback;
+      // Keep the default when browser storage is unavailable or invalid.
     }
+    const preference = ref(initialValue);
+    watch(
+      preference,
+      (value) => {
+        try {
+          localStorage.setItem(
+            key,
+            Array.isArray(value) ? JSON.stringify(value) : String(value),
+          );
+        } catch {
+          // Keep changes in memory when browser storage is unavailable.
+        }
+      },
+      { deep: true },
+    );
+    return preference;
   };
-  const desktopOverview = ref(
-    localStorage.getItem('koala-desktop-overview') === 'true',
+  const parseList = (saved: string): string[] | undefined => {
+    const value: unknown = JSON.parse(saved);
+    return Array.isArray(value) &&
+      value.every((item) => typeof item === 'string')
+      ? value
+      : undefined;
+  };
+  const desktopOverview = persistedRef(
+    'koala-desktop-overview',
+    false,
+    (value) => value === 'true',
   );
-  const desktopSlides = ref(
-    savedList('koala-desktop-slides', ['daily_totals', 'history_chart']),
+  const desktopSlides = persistedRef(
+    'koala-desktop-slides',
+    ['daily_totals', 'history_chart'],
+    parseList,
   );
   const additionalChartsOpen = ref(false);
-  const dashboardVisual = ref(
-    localStorage.getItem('koala-dashboard-visual') || 'flow_diagram',
+  const dashboardVisual = persistedRef(
+    'koala-dashboard-visual',
+    'flow_diagram',
+    (value) => value || 'flow_diagram',
   );
-  watch(dashboardVisual, (value) =>
-    localStorage.setItem('koala-dashboard-visual', value),
+  const historyChartHeight = persistedRef(
+    'koala-history-height',
+    300,
+    (value) => {
+      const height = Number(value);
+      return historyChartHeights.includes(height) ? height : undefined;
+    },
   );
-  const savedHistoryHeight = Number(
-    localStorage.getItem('koala-history-height'),
+  const expandedDailyTotals = persistedRef<string[]>(
+    'koala-expanded-daily-totals',
+    [],
+    parseList,
   );
-  const historyChartHeight = ref(
-    historyChartHeights.includes(savedHistoryHeight) ? savedHistoryHeight : 300,
+  const deviceOverview = persistedRef(
+    'koala-device-overview',
+    false,
+    (value) => value === 'true',
   );
-  const expandedDailyTotals = ref(savedList('koala-expanded-daily-totals', []));
-  watch(
-    expandedDailyTotals,
-    (value) =>
-      localStorage.setItem(
-        'koala-expanded-daily-totals',
-        JSON.stringify(value),
-      ),
-    { deep: true },
+  const dashboardDeviceSections = persistedRef(
+    'koala-device-sections',
+    ['charge-points', 'consumers'],
+    parseList,
   );
-  const deviceOverview = ref(
-    localStorage.getItem('koala-device-overview') === 'true',
-  );
-  const dashboardDeviceSections = ref(
-    savedList('koala-device-sections', ['charge-points', 'consumers']),
-  );
-  const deviceLayout = ref<'grid' | 'sections'>(
-    localStorage.getItem('koala-device-layout') === 'sections'
-      ? 'sections'
-      : 'grid',
-  );
-  watch(deviceLayout, (value) =>
-    localStorage.setItem('koala-device-layout', value),
-  );
-  watch(historyChartHeight, (value) =>
-    localStorage.setItem('koala-history-height', String(value)),
-  );
-  watch(deviceOverview, (value) =>
-    localStorage.setItem('koala-device-overview', String(value)),
-  );
-  watch(
-    dashboardDeviceSections,
-    (value) =>
-      localStorage.setItem('koala-device-sections', JSON.stringify(value)),
-    { deep: true },
-  );
-  watch(desktopOverview, (value) =>
-    localStorage.setItem('koala-desktop-overview', String(value)),
-  );
-  watch(
-    desktopSlides,
-    (value) =>
-      localStorage.setItem('koala-desktop-slides', JSON.stringify(value)),
-    { deep: true },
+  const deviceLayout = persistedRef<'grid' | 'sections'>(
+    'koala-device-layout',
+    'grid',
+    (value) => (value === 'sections' ? 'sections' : 'grid'),
   );
 
   //////////////    Legend Visibility     ///////////////////////
