@@ -1,10 +1,7 @@
 <template>
   <section
     class="dashboard-chart"
-    :class="[
-      `dashboard-${chart.name}`,
-      { 'dashboard-values-compact': compactValues },
-    ]"
+    :class="`dashboard-${chart.name}`"
     :style="{
       '--history-chart-height': `${localDataStore.historyChartHeight}px`,
     }"
@@ -19,7 +16,6 @@
             ? { dashboard: true }
             : {}
         "
-        :desktop="chart.name === 'daily_totals'"
         :show-legend="localDataStore.isLegendVisible(chart.name)"
       />
     </div>
@@ -41,7 +37,7 @@
 import { topCharts } from './charts/topCharts';
 import { useLocalDataStore } from 'src/stores/localData-store';
 
-defineProps<{ chart: (typeof topCharts)[number]; compactValues?: boolean }>();
+defineProps<{ chart: (typeof topCharts)[number] }>();
 const localDataStore = useLocalDataStore();
 </script>
 
@@ -72,13 +68,5 @@ const localDataStore = useLocalDataStore();
 }
 .dashboard-history_chart .dashboard-chart-body {
   height: var(--history-chart-height);
-}
-.dashboard-values-compact :deep(.totals-desktop .scroll-container) {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-@media (max-width: 599px) {
-  .dashboard-values-compact :deep(.totals-desktop .scroll-container) {
-    grid-template-columns: 1fr;
-  }
 }
 </style>

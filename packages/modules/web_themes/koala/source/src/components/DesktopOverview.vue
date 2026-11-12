@@ -9,11 +9,7 @@
     }"
     aria-label="Energieübersicht"
   >
-    <DashboardChart
-      v-if="valuesChart"
-      :chart="valuesChart"
-      class="overview-values"
-    />
+    <DailyTotalsStrip v-if="valuesChart" class="overview-values" />
     <div v-if="graphCharts.length" class="overview-graphs">
       <q-tabs
         v-if="graphCharts.length > 1"
@@ -64,6 +60,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import DashboardChart from './DashboardChart.vue';
+import DailyTotalsStrip from './charts/dailyTotals/DailyTotalsStrip.vue';
 import { topCharts, useTopCharts } from './charts/topCharts';
 import { useLocalDataStore } from 'src/stores/localData-store';
 

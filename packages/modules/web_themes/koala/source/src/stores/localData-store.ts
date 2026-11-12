@@ -73,6 +73,8 @@ export const useLocalDataStore = defineStore('localData', () => {
       return historyChartHeights.includes(height) ? height : undefined;
     },
   );
+  // Open tiles of the desktop daily totals strip only; the mobile carousel
+  // keeps its own, unsaved expansion state.
   const expandedDailyTotals = persistedRef<string[]>(
     'koala-expanded-daily-totals',
     [],
